@@ -8,7 +8,7 @@ CREATE TABLE kupac (
     email VARCHAR(100) NOT NULL UNIQUE,
     lozinka VARCHAR(255) NOT NULL,
     telefon VARCHAR(20),
-    datum_registracije DATE DEFAULT CURRENT_DATE,
+    datum_registracije DATE DEFAULT (CURRENT_DATE), /* Verzija MySQL Workbench 8.0.46 zahtjeva zagradu (CURRENT_DATE) */
     aktivan BOOLEAN DEFAULT TRUE
 );
 

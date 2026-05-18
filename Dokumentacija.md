@@ -412,20 +412,132 @@ Pošto `RAND()` vraća decimalni broj manji od jedan (npr. 0.847), on se treba p
         LIMIT 1;
 ```
 
+Sad kad imamo svojeg kupca, sljedeće što trebamo za narudžbu je adresa. Pošto smo već generirali kupca, nije potrebno nasumićno generirati adresu jer relacije za adresu već sadrži stupac za `kupac_id`. Ovaj upit služi za dohvaćanje adrese iz podataka koristeći našu varijeblu `random_kupac` kao kljuć. 
+
+Objašnjenje dijelova:
+
+- `SELECT adresa_id` – dohvaća ID adrese iz tablice adresa
+- `INTO random_addresa` – rezultat upita sprema u varijablu random_addresa koju smo deklarirali na početku
+- `FROM adresa` – tablica iz koje dohvaćamo podatke
+- `WHERE kupac_id` = random_kupac – filtrira adrese samo za odabranog kupca
+- `ORDER BY RAND()` – nasumično sortira rezultate
+- `LIMIT` 1 – uzima samo jedan rezultat (jednu adresu)
+
 &nbsp;
 
 ```sql
+INSERT INTO narudzba (
+    kupac_id,
+    adresa_id,
+    datum_narudzbe,
+    status,
+    ukupan_iznos
+)
+VALUES (
+    random_kupac,
+    random_addresa,
+    DATE_SUB(NOW(), INTERVAL FLOOR(RAND()*60) DAY),
+    'Završena',
+    0
+);
 ```
+
+S `random_kupac` i `random_addresa` imamo sve što trebamo da bi popunili redak narudžbe. Podatke popunjavama kao i kod prijašnjih relacija pomoći `INSERT` i `VALUES` naredba. Za `kupac_id` i `adresa_id` koristimo naše nasumićno generirane `random_kupac` i `random_addresa`, a `datum_narudzbe` se generira nasumićno pomoću `DATE_SUB(NOW(), INTERVAL FLOOR(RAND()*60) DAY)` koji stvara datum koji je 0-60 dana udaljeni od trenutnog datuma.
+
+&nbsp;
+
+Objašnjenje izraza:
+
+| Dio izraza | Funkcija | Objašnjenje |
+|------------|----------|-------------|
+| `NOW()` | Trenutni datum i vrijeme | Vraća sadašnji timestamp (npr. 2026-05-18 19:00:00) |
+| `RAND()` | Slučajni broj | Generira decimalni broj između 0 i 1 |
+| `RAND() * 60` | Skaliranje na raspon 0–60 | Pretvara slučajni broj u raspon dana (0–60) |
+| `FLOOR(RAND()*60)` | Cijeli broj dana | Uklanja decimalni dio i daje cijeli broj (0–59) |
+| `INTERVAL ... DAY` | Definicija vremenskog intervala | Pretvara broj u vremenski interval u danima |
+| `DATE_SUB(NOW(), INTERVAL ... DAY)` | Oduzimanje datuma | Oduzima slučajan broj dana od trenutnog datuma |
+
+&nbsp;
+
+Vrijednosti za `status` i `ukupan_iznos`, trenutno ne zahtijevaju nikakvo racunjanje. Status narudžbe možemo uvijek definirati kao 'Završena' zato jer su ovo narudžbe napravljene u prošlosti. Za ukupan iznos čemo zasada insertirati vrijednost od 0 jer još nemamo stavke naružbe pa ne možemo izraćunati ukupnu cijenu.
 
 &nbsp;
 
 ```sql
+SET id_narudzbe = LAST_INSERT_ID();
+
+SET j = 1;
+
+WHILE j <= 3 DO
+
+    SET random_proizvod = FLOOR(1 + RAND() * 20);
+    SET random_kolicina = FLOOR(1 + RAND() * 3);
+
+    INSERT INTO stavka_narudzbe (
+        narudzba_id,
+        proizvod_id,
+        kolicina,
+        cijena_po_komadu,
+        ukupna_cijena
+    )
+    SELECT
+        id_narudzbe,
+        p.proizvod_id,
+        random_kolicina,
+        p.cijena,
+        p.cijena * random_kolicina
+    FROM proizvod p
+    WHERE p.proizvod_id = random_proizvod;
+
+    SET j = j + 1;
+
+END WHILE;
 ```
+
+Slijedi najkompliciraniji dio procedure, a to je popuna stavka narudžba. Zamišljeno je da se za svaku stavku generiraju tri nasumiićno generirane stavke s razlićitim proizvodimo i kolicinama. Id narudžb je bio automatski generiran od strane MySQL-a tijekom popune narudžbe i njega dohvaćamo pomoću `LAST_INSERT_ID()` i tu vrijednost spremamo u našu varijablu `narudzba_id`. Zatim definiramo vrijednost varijable `j` isto kao što smo napravili kod `i` kao counter za while loop koji će se ponoviti tri puta za svaku od tri stavka narudžbe. Zatim pohranjujemo nasumiću vrijednost od 1 do 20 u varijablu `random_proizvod` i vrijednost od 1 do 3 u varijablu `random_kolicina` tako da dobimo vrijednosti koje že prestavljati id za jednog od 20 proizvoda i njihovu nasumićnu količinu. Slijedi popunjavanje stavka podacima:
+
+&nbsp;
+ 
+```sql
+INSERT INTO stavka_narudzbe (
+        narudzba_id,
+        proizvod_id,
+        kolicina,
+        cijena_po_komadu,
+        ukupna_cijena
+    )
+    SELECT
+        id_narudzbe,
+        p.proizvod_id,
+        random_kolicina,
+        p.cijena,
+        p.cijena * random_kolicina
+    FROM proizvod p
+    WHERE p.proizvod_id = random_proizvod;
+```
+
+Za razliku od prethodnih `INSERT` naredbi koje koriste `VALUES`, ovdje se koristi kombinacija `INSERT INTO ... SELECT`. Takav pristup omogućuje dohvaćanje podataka direktno iz druge tablice i njihovo umetanje u novu tablicu unutar iste naredbe.
+
+`INSERT INTO stavka_narudzbe` definira tablicu u koju će se umetnuti podaci, dok `S`ELECT dio određuje koje će se vrijednosti umetnuti.
+
+U `FROM proizvod p` dijelu dohvaćaju se podaci iz tablice proizvod, pri čemu je p alias (skraćeni naziv) za tablicu proizvod. Alias služi za kraće i preglednije pisanje naziva stupaca, pa umjesto `proizvod.cijena` možemo pisati `p.cijena`.
+
+Uvjet `WHERE p.proizvod_id = random_proizvod` osigurava da se iz tablice proizvod dohvati samo jedan proizvod — onaj čiji je ID jednak nasumično generiranom ID-u spremljenom u varijabli random_proizvod.
+
+Vrijednosti koje se umeću u tablicu `stavka_narudzbe` su:
+
+| Vrijednost                   | Opis                                           |
+| ---------------------------- | ---------------------------------------------- |
+| `id_narudzbe`                | ID trenutno generirane narudžbe                |
+| `p.proizvod_id`              | ID nasumično odabranog proizvoda               |
+| `random_kolicina`            | Nasumično generirana količina proizvoda        |
+| `p.cijena`                   | Stvarna cijena proizvoda iz tablice `proizvod` |
+| `p.cijena * random_kolicina` | Izračun ukupne cijene stavke                   |
 
 &nbsp;
 
-```sql
-```
+Na kraju petlje koristi se `SET j = j + 1` što povećava brojač unutarnje petlje i omogućuje prelazak na generiranje sljedeće stavke narudžbe. Kada vrijednost j postane veća od 3, unutarnja WHILE petlja završava i procedura nastavlja s generiranjem sljedeće narudžbe.
+
 
 &nbsp;
 

@@ -184,15 +184,18 @@ INSERT INTO proizvod (kategorija_id, naziv, opis, cijena, kolicina_na_skladistu,
 (2,'Mliječna čokolada s bademom','Hrskavi bademi u mliječnoj bazi',3.60,110,'ML4'),
 (2,'Mliječna kokos dream','Egzotični kokos u mliječnoj čokoladi',3.90,95,'ML5');
 
+
 INSERT INTO proizvod (kategorija_id, naziv, opis, cijena, kolicina_na_skladistu, SKU) VALUES
 (1,'Tamna 70% kakao','Intenzivna gorka čokolada',3.20,120,'T1'),
 (1,'Tamna s narančom','Citrusna aroma naranče',3.40,100,'T2'),
 (1,'Tamna chili spice','Ljuta čokolada s chili paprikom',3.60,85,'T3');
 
+
 INSERT INTO proizvod (kategorija_id, naziv, opis, cijena, kolicina_na_skladistu, SKU) VALUES
 (3,'Bijela vanilija','Kremasta vanilija čokolada',3.10,110,'B1'),
 (3,'Bijela s jagodom','Voćna jagoda u bijeloj čokoladi',3.30,95,'B2'),
 (3,'Bijela pistacija','Premium pistacija blend',3.80,70,'B3');
+
 
 INSERT INTO proizvod (kategorija_id, naziv, opis, cijena, kolicina_na_skladistu, SKU) VALUES
 (4,'Praline rum','Punjenje s rum kremom',5.50,60,'P1'),
@@ -217,9 +220,12 @@ DELIMITER $$
 CREATE PROCEDURE generiraj_narudzbe()
 BEGIN
     DECLARE i INT DEFAULT 1;
-    DECLARE random_kupac INT;
-    DECLARE random_addresa INT;
+    DECLARE j INT;
     DECLARE id_narudzbe INT;
+    DECLARE random_kupac INT;
+    DECLARE random_proizvod INT;
+    DECLARE random_addresa INT;
+    DECLARE random_kolicina INT;
 
     WHILE i <= 60 DO
 
@@ -249,17 +255,32 @@ BEGIN
 
         SET id_narudzbe = LAST_INSERT_ID();
 
-        INSERT INTO stavka_narudzbe (
-            narudzba_id,
-            proizvod_id,
-            kolicina,
-            cijena_po_komadu,
-            ukupna_cijena
-        )
-        VALUES
-        (id_narudzbe, FLOOR(1 + RAND()*18), 1, 3.5, 3.5),
-        (id_narudzbe, FLOOR(1 + RAND()*18), 2, 4.0, 8.0),
-        (id_narudzbe, FLOOR(1 + RAND()*18), 1, 5.5, 5.5);
+        SET j = 1;
+
+        WHILE j <= 3 DO
+
+            SET random_proizvod = FLOOR(1 + RAND() * 20);
+            SET random_kolicina = FLOOR(1 + RAND() * 3);
+
+            INSERT INTO stavka_narudzbe (
+                narudzba_id,
+                proizvod_id,
+                kolicina,
+                cijena_po_komadu,
+                ukupna_cijena
+            )
+            SELECT
+                id_narudzbe,
+                p.proizvod_id,
+                random_kolicina,
+                p.cijena,
+                p.cijena * random_kolicina
+            FROM proizvod p
+            WHERE p.proizvod_id = random_proizvod;
+
+            SET j = j + 1;
+
+        END WHILE;
 
         SET i = i + 1;
     END WHILE;
@@ -277,6 +298,7 @@ JOIN (
     GROUP BY narudzba_id
 ) s ON s.narudzba_id = n.narudzba_id
 SET n.ukupan_iznos = s.total;
+
 
 INSERT INTO placanje (narudzba_id, nacin_placanja, iznos, status_placanja, datum_placanja)
 SELECT 

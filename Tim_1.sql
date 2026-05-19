@@ -219,9 +219,9 @@ DELIMITER $$
 
 CREATE PROCEDURE generiraj_narudzbe()
 BEGIN
-    DECLARE i INT DEFAULT 1;
-    DECLARE j INT;
     DECLARE id_narudzbe INT;
+    DECLARE i INT DEFAULT 1;
+    DECLARE j INT DEFAULT 1;
     DECLARE random_kupac INT;
     DECLARE random_proizvod INT;
     DECLARE random_addresa INT;
@@ -255,8 +255,6 @@ BEGIN
 
         SET id_narudzbe = LAST_INSERT_ID();
 
-        SET j = 1;
-
         WHILE j <= 3 DO
 
             SET random_proizvod = FLOOR(1 + RAND() * 20);
@@ -282,6 +280,14 @@ BEGIN
 
         END WHILE;
 
+        UPDATE narudzba n
+        SET n.ukupan_iznos = (
+            SELECT SUM(sn.ukupna_cijena)
+            FROM stavka_narudzbe sn
+            WHERE sn.narudzba_id = id_narudzbe
+        )
+        WHERE n.narudzba_id = id_narudzbe;
+
         SET i = i + 1;
     END WHILE;
 
@@ -289,15 +295,8 @@ END $$
 
 DELIMITER ;
 
-CALL generiraj_narudzbe();
 
-UPDATE narudzba n
-JOIN (
-    SELECT narudzba_id, SUM(ukupna_cijena) AS total
-    FROM stavka_narudzbe
-    GROUP BY narudzba_id
-) s ON s.narudzba_id = n.narudzba_id
-SET n.ukupan_iznos = s.total;
+CALL generiraj_narudzbe();
 
 
 INSERT INTO placanje (narudzba_id, nacin_placanja, iznos, status_placanja, datum_placanja)

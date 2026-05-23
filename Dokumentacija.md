@@ -551,7 +551,7 @@ ORDER BY ukupni_prihod DESC;
 
 ### 7.5 Pogled: Aktivni kupci s osnovnim podacima (Andrej Pucović)
 
-Ovaj pogled prikazuje osnovne informacije o aktivnim kupcima unutar sustava. Podaci se dohvaćaju iz relacije `kupac`, pri čemu se pomoću uvjeta `WHERE` prikazuju samo kupci koji su označeni kao aktivni. Pogled omogućava jednostavniji dohvat podataka o aktivnim korisnicima bez potrebe ponovnog pisanja istog upita. Također omogućava ograničavanje prikaza osjetljivih podataka jer se ne prikazuje lozinka korisnika.
+Ovaj pogled prikazuje osnovne informacije o aktivnim kupcima unutar sustava. Podaci se dohvaćaju iz relacije `kupac`, pri čemu se pomoću uvjeta `WHERE` prikazuju samo kupci koji su označeni kao aktivni. Pogled ne prikazuje lozinku kupca, čime se ograničava prikaz osjetljivih podataka.
 
 ```sql
 CREATE VIEW AP_Pogled_aktivni_kupci AS
@@ -568,7 +568,7 @@ WHERE aktivan = TRUE;
 
 ### 7.6 Pogled: Proizvodi i njihove kategorije (Andrej Pucović)
 
-Ovaj pogled prikazuje proizvode zajedno s pripadajućim kategorijama proizvoda. Povezuju se relacije `proizvod` i `kategorija`, čime se omogućava jednostavniji pregled podataka o proizvodima, njihovim cijenama i stanju na skladištu. Pogled omogućava ponovno korištenje često korištenog `JOIN` upita bez potrebe njegovog ponovnog pisanja. Također je koristan za administraciju i pregled ponude proizvoda unutar trgovine.
+Ovaj pogled prikazuje proizvode zajedno s pripadajućim kategorijama. Koristi se `RIGHT JOIN` kako bi se prikazale i kategorije koje trenutno možda nemaju nijedan proizvod. Na taj način pogled nije ograničen samo na postojeće proizvode, nego daje širi pregled kategorija i povezanih proizvoda.
 
 ```sql
 CREATE VIEW AP_Pogled_proizvodi_kategorije AS
@@ -580,12 +580,12 @@ SELECT
     p.kolicina_na_skladistu,
     p.SKU
 FROM proizvod p
-JOIN kategorija k ON p.kategorija_id = k.kategorija_id;
+RIGHT JOIN kategorija k ON p.kategorija_id = k.kategorija_id;
 ```
 
 ### 7.7 Pogled: Detalji narudžbi (Andrej Pucović)
 
-Ovaj pogled prikazuje informacije o narudžbama, kupcima i adresama dostave. Povezuju se relacije `narudzba`, `kupac` i `adresa`, čime se dobiva pregled svih važnih podataka vezanih uz narudžbu. Pogled omogućava jednostavniji dohvat podataka o kupcima i njihovim narudžbama bez potrebe ponovnog pisanja složenijih `JOIN` upita. Također ne prikazuje osjetljive podatke poput lozinke kupca.
+Ovaj pogled prikazuje informacije o narudžbama, kupcima i adresama dostave. Povezuju se relacije `narudzba`, `kupac` i `adresa`, čime se dobiva pregled važnih podataka vezanih uz narudžbu. Pogled ne prikazuje osjetljive podatke poput lozinke kupca.
 
 ```sql
 CREATE VIEW AP_Pogled_detalji_narudzbi AS
@@ -604,7 +604,7 @@ JOIN adresa a ON n.adresa_id = a.adresa_id;
 
 ### 7.8 Pogled: Stavke narudžbi (Andrej Pucović)
 
-Ovaj pogled prikazuje proizvode koji se nalaze unutar pojedinih narudžbi zajedno s količinom, cijenom po komadu i ukupnom cijenom stavke. Povezuju se relacije `stavka_narudzbe` i `proizvod`, čime se dobiva detaljan pregled sadržaja narudžbi. Pogled omogućava jednostavniji prikaz stavki narudžbi bez potrebe ponovnog povezivanja relacija kroz `JOIN` operacije. Također je koristan za analizu prodaje pojedinih proizvoda.
+Ovaj pogled prikazuje stavke narudžbi zajedno s nazivom proizvoda. Koristi se `JOIN` s dodatnim uvjetom usporedbe, odnosno theta join uvjetom, gdje se prikazuju samo stavke čija je ukupna cijena veća od cijene po komadu. Time se izdvajaju stavke kod kojih je naručena količina veća od jednog komada.
 
 ```sql
 CREATE VIEW AP_Pogled_stavke_narudzbe AS
@@ -616,23 +616,29 @@ SELECT
     sn.cijena_po_komadu,
     sn.ukupna_cijena
 FROM stavka_narudzbe sn
-JOIN proizvod p ON sn.proizvod_id = p.proizvod_id;
+JOIN proizvod p 
+    ON sn.proizvod_id = p.proizvod_id
+    AND sn.ukupna_cijena > sn.cijena_po_komadu;
 ```
 
 ### 7.9 Pogled: Plaćanja narudžbi (Andrej Pucović)
 
-Ovaj pogled prikazuje podatke o plaćanjima narudžbi, uključujući način plaćanja, status plaćanja i datum plaćanja. Podaci se dohvaćaju iz relacije `placanje`, čime se omogućava jednostavniji pregled informacija vezanih uz transakcije kupaca. Pogled se može koristiti kao spremljeni `SELECT` upit za administraciju i praćenje statusa plaćanja unutar sustava trgovine.
+Ovaj pogled prikazuje plaćanja zajedno s osnovnim podacima o narudžbi i kupcu. Povezuju se relacije `placanje`, `narudzba` i `kupac`, čime se dobiva korisniji pregled od samog prikaza relacije `placanje`. Pogled je koristan za praćenje načina plaćanja, statusa plaćanja i kupca koji je vezan uz narudžbu.
 
 ```sql
 CREATE VIEW AP_Pogled_placanja_narudzbi AS
 SELECT 
     p.placanje_id,
     p.narudzba_id,
+    CONCAT(k.ime, ' ', k.prezime) AS kupac,
     p.nacin_placanja,
     p.iznos,
     p.status_placanja,
-    p.datum_placanja
-FROM placanje p;
+    p.datum_placanja,
+    n.status AS status_narudzbe
+FROM placanje p
+JOIN narudzba n ON p.narudzba_id = n.narudzba_id
+JOIN kupac k ON n.kupac_id = k.kupac_id;
 ```
 
 &nbsp;

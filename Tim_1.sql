@@ -514,7 +514,7 @@ SELECT
     p.kolicina_na_skladistu,
     p.SKU
 FROM proizvod p
-JOIN kategorija k ON p.kategorija_id = k.kategorija_id;
+RIGHT JOIN kategorija k ON p.kategorija_id = k.kategorija_id;
 
 -- Pogled 3: Detalji narudžbi
 CREATE VIEW AP_Pogled_detalji_narudzbi AS
@@ -540,18 +540,24 @@ SELECT
     sn.cijena_po_komadu,
     sn.ukupna_cijena
 FROM stavka_narudzbe sn
-JOIN proizvod p ON sn.proizvod_id = p.proizvod_id;
+JOIN proizvod p 
+    ON sn.proizvod_id = p.proizvod_id
+    AND sn.ukupna_cijena > sn.cijena_po_komadu;
 
 -- Pogled 5: Plaćanja narudžbi
 CREATE VIEW AP_Pogled_placanja_narudzbi AS
 SELECT 
     p.placanje_id,
     p.narudzba_id,
+    CONCAT(k.ime, ' ', k.prezime) AS kupac,
     p.nacin_placanja,
     p.iznos,
     p.status_placanja,
-    p.datum_placanja
-FROM placanje p;
+    p.datum_placanja,
+    n.status AS status_narudzbe
+FROM placanje p
+JOIN narudzba n ON p.narudzba_id = n.narudzba_id
+JOIN kupac k ON n.kupac_id = k.kupac_id;
 
 
 -- Danijel Margić - 5 upita --

@@ -388,7 +388,7 @@ pri čemu `A1, A2` predstavljaju atribute (stupce), `r1, r2` relacije (tablice),
 
 ### 6.1 Upit: Ukupan broj narudžbi i potrošnja po kupcu (Andrej Pucović)
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+Ovaj upit prikazuje ukupan broj narudžbi, ukupnu potrošnju i prosječnu vrijednost narudžbe za svakog kupca. Povezuju se relacije `kupac` i `narudzba`, a podaci se grupiraju prema kupcu korištenjem naredbe `GROUP BY`. Agregacijske funkcije `COUNT`, `SUM` i `AVG` koriste se za izračun broja narudžbi, ukupne potrošnje i prosječne vrijednosti narudžbe. Uvjet `HAVING` koristi se za prikaz samo kupaca koji imaju barem jednu narudžbu. Upit je koristan za analizu kupaca i prepoznavanje najaktivnijih kupaca trgovine.
 
 ```sql
 SELECT 
@@ -405,15 +405,84 @@ HAVING COUNT(n.narudzba_id) >= 1
 ORDER BY ukupno_potroseno DESC;
 ```
 
+### 6.2 Upit: Najprodavaniji proizvodi po količini i prihodu (Andrej Pucović)
+
+Ovaj upit prikazuje proizvode koji su ostvarili najveću prodaju prema količini prodanih proizvoda i ukupnom prihodu. Povezuju se relacije `proizvod`, `kategorija` i `stavka_narudzbe`, a podaci se grupiraju prema proizvodu i kategoriji. Agregacijska funkcija `SUM` koristi se za izračun ukupno prodane količine i ukupnog prihoda proizvoda. Rezultati su sortirani prema količini prodaje i prihodu, dok se pomoću `LIMIT` prikazuje samo prvih pet proizvoda. Upit je koristan za analizu najuspješnijih proizvoda u trgovini.
+
+```sql
+SELECT 
+    p.proizvod_id,
+    p.naziv,
+    k.naziv AS kategorija,
+    SUM(sn.kolicina) AS ukupno_prodano,
+    ROUND(SUM(sn.ukupna_cijena), 2) AS ukupni_prihod
+FROM proizvod p
+JOIN kategorija k ON p.kategorija_id = k.kategorija_id
+JOIN stavka_narudzbe sn ON p.proizvod_id = sn.proizvod_id
+GROUP BY p.proizvod_id, p.naziv, k.naziv
+ORDER BY ukupno_prodano DESC, ukupni_prihod DESC
+LIMIT 5;
+```
+
+### 6.3 Upit: Proizvodi koji nisu prodani (Andrej Pucović)
+
+Ovaj upit prikazuje proizvode koji se ne pojavljuju ni u jednoj narudžbi kupaca. Koristi se `LEFT JOIN` između relacija `proizvod` i `stavka_narudzbe`, dok uvjet `IS NULL` služi za pronalazak proizvoda bez povezanih zapisa u stavkama narudžbe. Rezultati se sortiraju prema nazivu proizvoda. Upit je koristan za prepoznavanje proizvoda koji se ne prodaju te može pomoći pri analizi ponude i upravljanju skladištem.
+
+```sql
+SELECT 
+    p.proizvod_id,
+    p.naziv,
+    p.cijena,
+    p.kolicina_na_skladistu
+FROM proizvod p
+LEFT JOIN stavka_narudzbe sn ON p.proizvod_id = sn.proizvod_id
+WHERE sn.proizvod_id IS NULL
+ORDER BY p.naziv;
+```
+
+### 6.4 Upit: Kupci čija je potrošnja veća od prosjeka (Andrej Pucović)
+
+Ovaj upit prikazuje kupce čija je ukupna potrošnja veća od prosječne potrošnje svih kupaca. U unutarnjem upitu računa se ukupna potrošnja po kupcu, a zatim se u vanjskom upitu prikazuju samo oni kupci čija je potrošnja veća od prosječne vrijednosti. Koriste se ugniježđeni podupiti, agregacijska funkcija `SUM`, funkcija `AVG` te grupiranje podataka po kupcu. Upit je koristan za prepoznavanje kupaca koji ostvaruju iznadprosječnu vrijednost kupovine.
+
+```sql
+SELECT *
+FROM (
+    SELECT 
+        k.kupac_id,
+        CONCAT(k.ime, ' ', k.prezime) AS kupac,
+        ROUND(SUM(n.ukupan_iznos), 2) AS ukupna_potrosnja
+    FROM kupac k
+    JOIN narudzba n ON k.kupac_id = n.kupac_id
+    GROUP BY k.kupac_id, k.ime, k.prezime
+) x
+WHERE x.ukupna_potrosnja > (
+    SELECT AVG(potrosnja_po_kupcu)
+    FROM (
+        SELECT SUM(n2.ukupan_iznos) AS potrosnja_po_kupcu
+        FROM narudzba n2
+        GROUP BY n2.kupac_id
+    ) y
+)
+ORDER BY x.ukupna_potrosnja DESC;
+```
+
+### 6.5 Upit: Mjesečni prihod trgovine (Andrej Pucović)
+
+Ovaj upit prikazuje broj narudžbi, ukupni prihod i prosječnu vrijednost narudžbe po mjesecima. Podaci se dohvaćaju iz relacije `narudzba`, a funkcije `YEAR` i `MONTH` koriste se za grupiranje podataka prema godini i mjesecu narudžbe. Agregacijske funkcije `COUNT`, `SUM` i `AVG` omogućavaju analizu prodaje kroz određena vremenska razdoblja. Upit je koristan za praćenje poslovanja trgovine i analizu mjesečnih prihoda.
+
+```sql
+SELECT 
+    YEAR(datum_narudzbe) AS godina,
+    MONTH(datum_narudzbe) AS mjesec,
+    COUNT(*) AS broj_narudzbi,
+    ROUND(SUM(ukupan_iznos), 2) AS mjesecni_prihod,
+    ROUND(AVG(ukupan_iznos), 2) AS prosjecna_narudzba
+FROM narudzba
+GROUP BY YEAR(datum_narudzbe), MONTH(datum_narudzbe)
+ORDER BY godina, mjesec;
+```
+
 &nbsp;
-
-
-
-...
-...
-...
-...
-...
 
 
 ### 6.6 Upit: Prosječna ocjena i broj recenzija po proizvodu (Danijel Margić)
@@ -480,12 +549,12 @@ ORDER BY ukupni_prihod DESC;
 ...
 ...
 
-### 7.5 Pogled: Pogled aktivnih kupaca s osnovnim podacima (Andrej Pucović)
+### 7.5 Pogled: Aktivni kupci s osnovnim podacima (Andrej Pucović)
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+Ovaj pogled prikazuje osnovne informacije o aktivnim kupcima unutar sustava. Podaci se dohvaćaju iz relacije `kupac`, pri čemu se pomoću uvjeta `WHERE` prikazuju samo kupci koji su označeni kao aktivni. Pogled omogućava jednostavniji dohvat podataka o aktivnim korisnicima bez potrebe ponovnog pisanja istog upita. Također omogućava ograničavanje prikaza osjetljivih podataka jer se ne prikazuje lozinka korisnika.
 
 ```sql
-CREATE OR REPLACE VIEW AP_Pogled_aktivni_kupci AS
+CREATE VIEW AP_Pogled_aktivni_kupci AS
 SELECT 
     kupac_id,
     ime,
@@ -497,10 +566,74 @@ FROM kupac
 WHERE aktivan = TRUE;
 ```
 
-...
-...
-...
-...
+### 7.6 Pogled: Proizvodi i njihove kategorije (Andrej Pucović)
+
+Ovaj pogled prikazuje proizvode zajedno s pripadajućim kategorijama proizvoda. Povezuju se relacije `proizvod` i `kategorija`, čime se omogućava jednostavniji pregled podataka o proizvodima, njihovim cijenama i stanju na skladištu. Pogled omogućava ponovno korištenje često korištenog `JOIN` upita bez potrebe njegovog ponovnog pisanja. Također je koristan za administraciju i pregled ponude proizvoda unutar trgovine.
+
+```sql
+CREATE VIEW AP_Pogled_proizvodi_kategorije AS
+SELECT 
+    p.proizvod_id,
+    p.naziv AS proizvod,
+    k.naziv AS kategorija,
+    p.cijena,
+    p.kolicina_na_skladistu,
+    p.SKU
+FROM proizvod p
+JOIN kategorija k ON p.kategorija_id = k.kategorija_id;
+```
+
+### 7.7 Pogled: Detalji narudžbi (Andrej Pucović)
+
+Ovaj pogled prikazuje informacije o narudžbama, kupcima i adresama dostave. Povezuju se relacije `narudzba`, `kupac` i `adresa`, čime se dobiva pregled svih važnih podataka vezanih uz narudžbu. Pogled omogućava jednostavniji dohvat podataka o kupcima i njihovim narudžbama bez potrebe ponovnog pisanja složenijih `JOIN` upita. Također ne prikazuje osjetljive podatke poput lozinke kupca.
+
+```sql
+CREATE VIEW AP_Pogled_detalji_narudzbi AS
+SELECT 
+    n.narudzba_id,
+    CONCAT(k.ime, ' ', k.prezime) AS kupac,
+    n.datum_narudzbe,
+    n.status,
+    n.ukupan_iznos,
+    a.grad,
+    a.ulica
+FROM narudzba n
+JOIN kupac k ON n.kupac_id = k.kupac_id
+JOIN adresa a ON n.adresa_id = a.adresa_id;
+```
+
+### 7.8 Pogled: Stavke narudžbi (Andrej Pucović)
+
+Ovaj pogled prikazuje proizvode koji se nalaze unutar pojedinih narudžbi zajedno s količinom, cijenom po komadu i ukupnom cijenom stavke. Povezuju se relacije `stavka_narudzbe` i `proizvod`, čime se dobiva detaljan pregled sadržaja narudžbi. Pogled omogućava jednostavniji prikaz stavki narudžbi bez potrebe ponovnog povezivanja relacija kroz `JOIN` operacije. Također je koristan za analizu prodaje pojedinih proizvoda.
+
+```sql
+CREATE VIEW AP_Pogled_stavke_narudzbe AS
+SELECT 
+    sn.stavka_id,
+    sn.narudzba_id,
+    p.naziv AS proizvod,
+    sn.kolicina,
+    sn.cijena_po_komadu,
+    sn.ukupna_cijena
+FROM stavka_narudzbe sn
+JOIN proizvod p ON sn.proizvod_id = p.proizvod_id;
+```
+
+### 7.9 Pogled: Plaćanja narudžbi (Andrej Pucović)
+
+Ovaj pogled prikazuje podatke o plaćanjima narudžbi, uključujući način plaćanja, status plaćanja i datum plaćanja. Podaci se dohvaćaju iz relacije `placanje`, čime se omogućava jednostavniji pregled informacija vezanih uz transakcije kupaca. Pogled se može koristiti kao spremljeni `SELECT` upit za administraciju i praćenje statusa plaćanja unutar sustava trgovine.
+
+```sql
+CREATE VIEW AP_Pogled_placanja_narudzbi AS
+SELECT 
+    p.placanje_id,
+    p.narudzba_id,
+    p.nacin_placanja,
+    p.iznos,
+    p.status_placanja,
+    p.datum_placanja
+FROM placanje p;
+```
 
 &nbsp;
 

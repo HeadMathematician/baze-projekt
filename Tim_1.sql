@@ -416,8 +416,9 @@ FROM koeficijent_kolicine_po_proizvodu
 ORDER BY prosjecna_kolicina_po_narudzbi DESC;
 
 
--- Andrej Pucković - 5 upita --
+-- Andrej Pucović - 5 upita --
 
+-- Upit 1: Ukupan broj narudžbi i potrošnja po kupcu
 SELECT 
     k.kupac_id,
     CONCAT(k.ime, ' ', k.prezime) AS kupac,
@@ -431,7 +432,7 @@ GROUP BY k.kupac_id, k.ime, k.prezime, k.email
 HAVING COUNT(n.narudzba_id) >= 1
 ORDER BY ukupno_potroseno DESC;
 
-
+-- Upit 2: Najprodavaniji proizvodi po količini i prihodu
 SELECT 
     p.proizvod_id,
     p.naziv,
@@ -445,7 +446,7 @@ GROUP BY p.proizvod_id, p.naziv, k.naziv
 ORDER BY ukupno_prodano DESC, ukupni_prihod DESC
 LIMIT 5;
 
-
+-- Upit 3: Proizvodi koji nisu prodani 
 SELECT 
     p.proizvod_id,
     p.naziv,
@@ -456,7 +457,7 @@ LEFT JOIN stavka_narudzbe sn ON p.proizvod_id = sn.proizvod_id
 WHERE sn.proizvod_id IS NULL
 ORDER BY p.naziv;
 
-
+-- Upit 4: Kupci čija je potrošnja veća od prosjeka
 SELECT *
 FROM (
     SELECT 
@@ -477,7 +478,7 @@ WHERE x.ukupna_potrosnja > (
 )
 ORDER BY x.ukupna_potrosnja DESC;
 
-
+-- Upit 5: Mjesečni prihod trgovine
 SELECT 
     YEAR(datum_narudzbe) AS godina,
     MONTH(datum_narudzbe) AS mjesec,
@@ -489,9 +490,10 @@ GROUP BY YEAR(datum_narudzbe), MONTH(datum_narudzbe)
 ORDER BY godina, mjesec;
 
 
--- Andrej Pucković - 5 pogleda --
+-- Andrej Pucović - 5 pogleda
 
-CREATE OR REPLACE VIEW AP_Pogled_aktivni_kupci AS
+-- Pogled 1: Aktivni kupci s osnovnim podacima
+CREATE VIEW AP_Pogled_aktivni_kupci AS
 SELECT 
     kupac_id,
     ime,
@@ -502,8 +504,8 @@ SELECT
 FROM kupac
 WHERE aktivan = TRUE;
 
-
-CREATE OR REPLACE VIEW AP_Pogled_proizvodi_kategorije AS
+-- Pogled 2: Proizvodi i njihove kategorije
+CREATE VIEW AP_Pogled_proizvodi_kategorije AS
 SELECT 
     p.proizvod_id,
     p.naziv AS proizvod,
@@ -514,8 +516,8 @@ SELECT
 FROM proizvod p
 JOIN kategorija k ON p.kategorija_id = k.kategorija_id;
 
-
-CREATE OR REPLACE VIEW AP_Pogled_detalji_narudzbi AS
+-- Pogled 3: Detalji narudžbi
+CREATE VIEW AP_Pogled_detalji_narudzbi AS
 SELECT 
     n.narudzba_id,
     CONCAT(k.ime, ' ', k.prezime) AS kupac,
@@ -528,8 +530,8 @@ FROM narudzba n
 JOIN kupac k ON n.kupac_id = k.kupac_id
 JOIN adresa a ON n.adresa_id = a.adresa_id;
 
-
-CREATE OR REPLACE VIEW AP_Pogled_stavke_narudzbe AS
+-- Pogled 4: Stavke narudžbi
+CREATE VIEW AP_Pogled_stavke_narudzbe AS
 SELECT 
     sn.stavka_id,
     sn.narudzba_id,
@@ -540,8 +542,8 @@ SELECT
 FROM stavka_narudzbe sn
 JOIN proizvod p ON sn.proizvod_id = p.proizvod_id;
 
-
-CREATE OR REPLACE VIEW AP_Pogled_placanja_narudzbi AS
+-- Pogled 5: Plaćanja narudžbi
+CREATE VIEW AP_Pogled_placanja_narudzbi AS
 SELECT 
     p.placanje_id,
     p.narudzba_id,
@@ -673,6 +675,6 @@ FROM nabava n
 JOIN dobavljac d ON n.dobavljac_id = d.dobavljac_id;
 
 
--- Andrej Pucković i Danijel Margić - Triggeri --
+-- Andrej Pucović i Danijel Margić - Triggeri --
 
 -------- Dopuni

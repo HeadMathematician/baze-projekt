@@ -9,7 +9,7 @@
 - **Luka Juroš** (JMBAG: )
 - **Teo Kupčinovac** (JMBAG: )
 - **Luka Wrana** (JMBAG: )
-- **Andrej Pucković** (JMBAG: )
+- **Andrej Pucović** (JMBAG: 0246066534)
 - **Danijel Margić** (JMBAG: )
 
 &nbsp;
@@ -872,13 +872,13 @@ Prilikom popune korištene su različite ocjene i komentari kako bi podaci djelo
 &nbsp;
 
 
-## 6. Upiti (Andrej Pucković i Danijel Margić)
+## 6. Upiti (Andrej Pucović i Danijel Margić)
 
 opis -Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 
 &nbsp;
 
-### 6.1 Upit: Ukupan broj narudžbi i potrošnja po kupcu (Andrej Pucković)
+### 6.1 Upit: Ukupan broj narudžbi i potrošnja po kupcu (Andrej Pucović)
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 
@@ -928,7 +928,7 @@ ORDER BY prosjecna_ocjena DESC, broj_recenzija DESC;
 &nbsp;
 
 
-## 7. Pogledi (Luka Wrana, Andrej Pucković, Danijel Margić)
+## 7. Pogledi (Luka Wrana, Andrej Pucović, Danijel Margić)
 
 opis -Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 
@@ -1185,7 +1185,7 @@ Takav pogled koristan je za:
 ...
 ...
 
-### 7.5 Pogled: Pogled aktivnih kupaca s osnovnim podacima (Andrej Pucković)
+### 7.5 Pogled: Pogled aktivnih kupaca s osnovnim podacima (Andrej Pucović)
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 

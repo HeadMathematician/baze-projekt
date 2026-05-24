@@ -10,7 +10,7 @@
 - **Teo Kupčinovac** (JMBAG: )
 - **Luka Wrana** (JMBAG: )
 - **Andrej Pucović** (JMBAG: 0246066534)
-- **Danijel Margić** (JMBAG: )
+- **Danijel Margić** (JMBAG: 0275053078)
 
 &nbsp;
 
@@ -484,23 +484,116 @@ ORDER BY godina, mjesec;
 
 &nbsp;
 
+### 6.6 Upit : Usporedba prodajne cijene i zadnje nabavne cijene po komadu (Danijel Margić)
 
-### 6.6 Upit: Prosječna ocjena i broj recenzija po proizvodu (Danijel Margić)
+```sql
+SELECT 
+    p.proizvod_id,
+    p.naziv AS proizvod,
+    p.cijena AS prodajna_cijena,
+    ROUND(AVG(sn.nabavna_cijena), 2) AS prosjecna_nabavna_cijena,
+    ROUND((p.cijena - AVG(sn.nabavna_cijena)), 2) AS profit_po_komadu,
+    ROUND(((p.cijena - AVG(sn.nabavna_cijena)) / p.cijena) * 100, 2) AS marza_postotak
+FROM proizvod p
+INNER JOIN stavka_nabave sn ON p.proizvod_id = sn.proizvod_id
+GROUP BY p.proizvod_id, p.naziv, p.cijena
+ORDER BY marza_postotak DESC;
+```
+#### rezultat Upit a:
+![Moja slika](slike/slikaRezUpit a1.png)
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+Ovaj upit služi za procjenu profitabilnosti proizvoda tako što uspoređuje njihovu prodajnu cijenu s prosječnom nabavnom cijenom. Podaci se preuzimaju iz tablice `proizvod`, a zatim se pomoću `INNER JOIN` spajaju sa zapisima iz tablice `stavka_nabave`, pri čemu se spajanje vrši preko relacije `p.proizvod_id = sn.proizvod_id`. Na taj način u analizu ulaze samo proizvodi koji imaju evidentirane nabave. Nad stupcem `sn.nabavna_cijena` primjenjuje se agregatna funkcija `AVG` kako bi se izračunala prosječna nabavna cijena za svaki proizvod. Nakon toga određuje se profit po komadu kao razlika između prodajne cijene iz tablice proizvod i izračunate prosječne nabavne cijene. Iz istih vrijednosti računa se i marža u postotku, koja pokazuje koliki dio prodajne cijene predstavlja zarada. Budući da se koriste agregatne funkcije, podaci se grupiraju prema identifikatoru, nazivu i prodajnoj cijeni proizvoda, što omogućuje da svaki proizvod bude prikazan kao jedan agregirani zapis. Rezultati se zatim sortiraju tako da se proizvodi s najvećom maržom nalaze na vrhu, čime upit omogućuje brzi uvid u najprofitabilnije artikle i potencijalne prilike za optimizaciju cijena ili nabavne strategije.
+
+### 6.7 UPIT: Ukupna zarada, broj narudžbi i prosječna vrijednost košarice po kategorijama (Danijel Margić)
+
+```sql
+SELECT 
+    k.naziv AS kategorija_naziv,
+    COUNT(DISTINCT sn.narudzba_id) AS ukupno_narudzbi,
+    SUM(sn.kolicina) AS prodano_komada,
+    SUM(sn.ukupna_cijena) AS ukupni_prihod,
+    ROUND(AVG(sn.ukupna_cijena), 2) AS prosjecna_vrijednost_stavke
+FROM kategorija k
+INNER JOIN proizvod p ON k.kategorija_id = p.kategorija_id
+INNER JOIN stavka_narudzbe sn ON p.proizvod_id = sn.proizvod_id
+GROUP BY k.kategorija_id, k.naziv
+ORDER BY ukupni_prihod DESC;
+```
+#### Rezultat upita:
+![Rezultat upita 2](slike/slikaRezUpita2.png)
+
+Ovaj upit služi za identifikaciju najprofitabilnijih segmenata asortimana kroz analizu prodajnih rezultata na razini kategorija proizvoda. Podaci se povezuju iz triju različitih relacija pomoću višestruke operacije `INNER JOIN`. Prvo se spajaju relacije `kategorija` i `proizvod` preko zajedničkog identifikatora kategorije, a zatim se rezultat povezuje s relacijom `stavka_narudzbe` preko surogatnog ključa proizvoda. Time se osigurava referencijski integritet i obuhvaćaju samo oni artikli koji su zapravo prodani. 
+
+Nad atributom `sn.narudzba_id` primjenjuje se funkcija `COUNT(DISTINCT)` koja prebrojava unikatne n-torke narudžbi unutar multiskupa i eliminira duplikate nastale zbog više stavki u istoj košarici. Agregacijska funkcija `SUM` koristi se nad domenom atributa količine i ukupne cijene stavki kako bi izračunala ukupan volumen prodaje i ukupni ostvareni prihod. Istovremeno, funkcija `AVG` računa srednju vrijednost pojedinačnih stavki u narudžbi, zaokruženu funkcijom `ROUND` na dvije decimale. Svi prikupljeni transakcijski podaci grupiraju se (`GROUP BY`) prema nazivu i identifikatoru kategorije, što omogućuje sažeti prikaz performansi svake skupine proizvoda. Rezultati se sortiraju silazno prema ukupnom prihodu (`ORDER BY ... DESC`), uvid u to koje kategorije čokolada generiraju najveći promet na platformi.
+
+### 6.8 UPIT: Kontrola kvalitete asortimana kroz najbolje ocijenjene proizvode (Danijel Margić)
+
+```sql
+SELECT 
+    p.proizvod_id,
+    p.naziv AS proizvod_naziv,
+    p.cijena,
+    ROUND(AVG(r.ocjena), 2) AS prosjecna_ocjena,
+    COUNT(r.recenzija_id) AS broj_recenzija
+FROM proizvod p
+INNER JOIN recenzija r ON p.proizvod_id = r.proizvod_id
+GROUP BY p.proizvod_id, p.naziv, p.cijena
+HAVING broj_recenzija >= 2
+ORDER BY prosjecna_ocjena DESC, broj_recenzija DESC;
+```
+
+#### Rezultat upita:
+![Rezultat upita 3](slike/slikaRezUpita3.png)
+
+Ovaj upit služi za kontrolu kvalitete asortimana i izdvajanje artikala s najvišim povjerenjem kupaca, što omogućuje prepoznavanje "bestsellera". Podaci se preuzimaju iz referencirane relacije `proizvod` i povezuju pomoću operacije `INNER JOIN` s n-torkama iz referencirajuće relacije `recenzija`, pri čemu se spajanje vrši preko zajedničkog surogatnog ključa `p.proizvod_id = r.proizvod_id`. Na taj način u analizu ulaze samo oni artikli koji su dobili povratne informacije od klijenata. 
+
+Nad domenom atributa `r.ocjena` primjenjuje se agregatna funkcija `AVG` kako bi se izračunala prosječna ocjena za svaki proizvod, zaokružena funkcijom `ROUND` na dvije decimale radi preciznosti. Istovremeno, funkcija `COUNT` prebrojava unikatne n-torke unutar atributa `r.recenzija_id` radi utvrđivanja ukupnog broja ocjena. Budući da se koriste agregatne funkcije nad multiskupovima, podaci se grupiraju (`GROUP BY`) prema identifikatoru, nazivu i cijeni proizvoda. Ključni dio upita je primjena klauzule `HAVING` koja vrši restrikciju skupina i propušta samo proizvode s barem dvije zaprimljene recenzije, čime se eliminiraju artikli s nerealno visokim ocjenama na temelju samo jednog glasa. Rezultati se sortiraju primarno prema prosječnoj ocjeni silazno (`DESC`), a sekundarno prema broju recenzija, pružajući jasan uvid u najkvalitetnije i najpopularnije proizvode na platformi.
+
+### 6.9 UPIT: Upravljanje skladištem i identifikacija kritičnih zaliha popularnih artikala (Danijel Margić)
 
 ```sql
 SELECT 
     p.proizvod_id,
     p.naziv,
-    COUNT(r.recenzija_id) AS broj_recenzija,
-    ROUND(AVG(r.ocjena), 2) AS prosjecna_ocjena
+    p.kolicina_na_skladistu,
+    SUM(sn.kolicina) AS ukupno_prodano
 FROM proizvod p
-LEFT JOIN recenzija r ON p.proizvod_id = r.proizvod_id
-GROUP BY p.proizvod_id, p.naziv
-HAVING COUNT(r.recenzija_id) > 0
-ORDER BY prosjecna_ocjena DESC, broj_recenzija DESC;
+INNER JOIN stavka_narudzbe sn ON p.proizvod_id = sn.proizvod_id
+WHERE p.kolicina_na_skladistu < (
+    SELECT AVG(kolicina_na_skladistu) FROM proizvod WHERE aktivan = TRUE
+)
+GROUP BY p.proizvod_id, p.naziv, p.kolicina_na_skladistu
+ORDER BY p.kolicina_na_skladistu ASC;
 ```
+
+#### Rezultat upita:
+![Rezultat upita 4](slike/slikaRezUpita4.png)
+
+Ovaj upit služi za upravljanje skladištem i pravovremenu identifikaciju artikala koji su traženi na tržištu, ali su im zalihe kritično niske u usporedbi s prosjekom trgovine. Podaci se polazno povlače iz referencirane relacije `proizvod` i povezuju preko operacije `INNER JOIN` s n-torkama iz referencirajuće relacije `stavka_narudzbe` pomoću surogatnog ključa `p.proizvod_id = sn.proizvod_id`. Time se osigurava da se u analizu uključe isključivo proizvodi koji imaju ostvarenu prodaju. 
+
+Ključni dio upita nalazi se u klauzuli `WHERE` koja vrši restrikciju na razini n-torki pomoću ugniježđenog skalarnog podupita. Taj podupit izračunava srednju vrijednost domene atributa `kolicina_na_skladistu` za sve aktivne artikle pomoću funkcije `AVG`. Glavni upit potom kroz operaciju selekcije propušta samo one proizvode čija je pojedinačna zaliha strogo manja od tog izračunatog prosjeka. Agregacijska funkcija `SUM` zbraja količine unutar multiskupa atributa `sn.kolicina` kako bi prikazala ukupan broj prodanih komada. Podaci se grupiraju (`GROUP BY`) prema identifikatoru, nazivu i stanju zaliha proizvoda, što omogućuje čisti pregled po svakom artiklu. Rezultati se sortiraju uzlazno (`ASC`) prema količini na skladištu, postavljajući najugroženije proizvode s kritičnim zalihama na sam vrh liste kako bi voditelj nabave odmah znao što treba ponovno naručiti od dobavljača.
+
+### 6.10 UPIT: Analiza prometa asortimana (Danijel Margić)
+
+```sql
+SELECT 
+    p.proizvod_id,
+    p.SKU,
+    p.naziv AS proizvod_naziv,
+    COALESCE(SUM(sn.kolicina), 0) AS ukupno_prodanih_komada,
+    COALESCE(SUM(sn.ukupna_cijena), 0) AS ukupni_ostvareni_prihod
+FROM proizvod p
+LEFT JOIN stavka_narudzbe sn ON p.proizvod_id = sn.proizvod_id
+GROUP BY p.proizvod_id, p.SKU, p.naziv
+ORDER BY ukupno_prodanih_komada ASC;
+```
+
+#### Rezultat upita:
+![Rezultat upita 5](slike/slikaRezUpita5.png)
+
+Ovaj upit služi za  analizu prometa asortimana s ciljem identifikacije proizvoda koji slabije rotiraju ili se uopće ne prodaju, kako bi se donijele odluke o popustima ili povlačenju robe. Za razliku od standardnog spajanja, ovaj upit polazi od relacije `proizvod` i povezuje se s n-torkama iz relacije `stavka_narudzbe` pomoću operacije lijevog vanjskog spajanja (**`LEFT JOIN`**). Svrha ove operacije je očuvanje svih n-torki iz lijeve relacije (`proizvod`), čak i ako za njih ne postoji niti jedan zapis o prodaji u desnoj relaciji. Za takve neprodane artikle, sustav privremeno inicijalizira vrijednosti kao `null`.
+
+U fazi projekcije nad multiskupovima, funkcija `SUM` zbraja količine i ukupne prihode. Ključni element je primjena funkcije `COALESCE`, koja provodi generaliziranu projekciju i automatski zamjenjuje nastale `null` vrijednosti s konstantom `0` za sve proizvode bez realiziranog prometa. Podaci se grupiraju (`GROUP BY`) prema identifikatoru, unikatnom prirodnom ključu `SKU` i nazivu artikla. Rezultati se sortiraju uzlazno (`ORDER BY ... ASC`) prema broju prodanih komada. Na taj način, upit na samom vrhu tablice  prikazuje čokolade koje nitko nije kupio.
 
 &nbsp;
 
@@ -643,24 +736,230 @@ JOIN kupac k ON n.kupac_id = k.kupac_id;
 
 &nbsp;
 
-### 7.10 Pogled: Pogled dostave po narudžbi (Danijel Margić)
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+### 7.10 Pogled: Prikaz ukupne potrošnje i aktivnosti po kupcima (Danijel Margić)
 
 ```sql
-CREATE OR REPLACE VIEW AP_Pogled_dostave_narudzbi AS
+CREATE OR REPLACE VIEW v_pregled_potrosnje_kupaca AS
+SELECT 
+    k.kupac_id,
+    CONCAT(k.ime, ' ', k.prezime) AS kupac_ime_prezime,
+    k.email,
+    COUNT(n.narudzba_id) AS ukupno_narudzbi,
+    COALESCE(SUM(n.ukupan_iznos), 0) AS ukupno_potroseno
+FROM kupac k
+LEFT JOIN narudzba n ON k.kupac_id = n.kupac_id
+GROUP BY k.kupac_id, k.ime, k.prezime, k.email;
+```
+
+```sql
+-- Pozivanje pogleda uz sortiranje po ukupnoj potrošnji silazno
+SELECT * FROM v_pregled_potrosnje_kupaca 
+ORDER BY ukupno_potroseno DESC;
+```
+#### Rezultat pogleda:
+![Rezultat upita 5](slike/slikaRezPogled1.png)
+
+Ovaj pogled sluzi da se brzo vidi potrošačke navike i vjernost kupaca bez stalnog pisanja složenih upita. Podaci se povlače iz bazne relacije `kupac` i povezuju s n-torkama iz transakcijske relacije `narudzba`. U upitu se koristi operacija lijevog vanjskog spajanja (**`LEFT JOIN`**), čime se osigurava da u rezultirajuću izvedenu relaciju uđu svi registrirani kupci, uključujući i one pasivne koji još nemaju niti jednu realiziranu transakciju. Za takve korisnike sustav privremeno inicijalizira vrijednosti kao `null`.
+
+U sklopu generalizirane projekcije primjenjuje se funkcija `CONCAT` koja spaja tekstualne atribute imena i prezimena u jedno polje. Nad multiskupom atributa `n.narudzba_id` izvršava se agregatna funkcija `COUNT` radi dobivanja ukupnog broja kupnji. Istovremeno, funkcija `SUM` zbraja iznose unutar domene atributa `n.ukupan_iznos`. Ključni element unutar projekcije je funkcija `COALESCE` koja presreće `null` vrijednosti nastale kod pasivnih kupaca i automatski ih pretvara u konstantu `0`. Svi transakcijski pokazatelji grupiraju se (`GROUP BY`) prema surogatnom ključu kupca, njegovom e-mailu i punom imenu. Pozivanjem ovog pogleda uz završnu naredbu `ORDER BY ... DESC`, sustav prikazuje kupce sortirane tako da se oni koji su najviše potrošili nalaze na samom vrhu liste.
+
+### 7.11 Pogled: Pregled aktivnosti i troškova opskrbnog lanca (Danijel Margić)
+
+```sql
+CREATE OR REPLACE VIEW v_analiza_dobavljaca_opskrba AS
+SELECT 
+    d.dobavljac_id,
+    d.naziv AS dobavljac_naziv,
+    d.kontakt_osoba,
+    COUNT(n.nabava_id) AS broj_realiziranih_nabava,
+    COALESCE(SUM(n.ukupan_iznos), 0) AS ukupno_isplaceno_dobavljacu
+FROM nabava n
+RIGHT JOIN dobavljac d ON n.dobavljac_id = d.dobavljac_id
+GROUP BY d.dobavljac_id, d.naziv, d.kontakt_osoba;
+
+-- Pozivanje pogleda uz sortiranje po ukupnim troškovima nabave silazno
+SELECT * FROM v_analiza_dobavljaca_opskrba 
+ORDER BY ukupno_isplaceno_dobavljacu DESC;
+```
+
+#### Rezultat pogleda:
+![Rezultat pogleda 2](slike/slikaRezPogled2.png)
+
+Ovaj pogled pomaže kako bi se brzo provjerilo koliko često surađujemo s kojim dobavljačem i koliko smo im novca ukupno isplatili. Podaci se povezuju iz transakcijske relacije `nabava` i bazne relacije `dobavljac` pomoću operacije desnog vanjskog spajanja (**`RIGHT JOIN`**). Svrha ove operacije je da u konačnom pogledu sačuvamo apsolutno sve dobavljače iz baze podataka, čak i ako od nekoga još nismo napravili niti jednu narudžbu, pri čemu će sustav njihove prazne transakcijske podatke privremeno označiti kao `null`.
+
+U fazi projekcije, funkcija `COUNT` prebrojava unikatne n-torke realiziranih nabava iz popisa transakcija. Agregacijska funkcija `SUM` zbraja sve izdatke unutar domene atributa `n.ukupan_iznos`. Kako se kod novih ili neaktivnih dobavljača u pogledu ne bi prikazivala prazna polja, funkcija `COALESCE` uspješno presreće nastale `null` vrijednosti i pretvara ih u jasnu konstantu `0`. Svi podaci se logički strukturiraju i grupiraju (`GROUP BY`) prema surogatnom ključu i nazivu dobavljača. Pozivanjem ovog pogleda uz završnu naredbu `ORDER BY ... DESC`, pogled na samom vrhu prikazuje partnere s kojima ostvarujemo najveći financijski promet, dok se na dnu nalze dobavljači s nula realiziranih narudžbi.
+
+### 7.12 Pogled: Prikaz volumena prodaje (Danijel Margić)
+
+```sql
+CREATE OR REPLACE VIEW v_analiza_popularnosti_proizvoda AS
+SELECT 
+    p.proizvod_id,
+    p.naziv AS proizvod_naziv,
+    COALESCE(SUM(sn.kolicina), 0) AS ukupno_prodanih_komada,
+    COALESCE(SUM(sn.ukupna_cijena), 0) AS ukupni_ostvareni_prihod
+FROM proizvod p
+LEFT JOIN stavka_narudzbe sn ON p.proizvod_id = sn.proizvod_id
+GROUP BY p.proizvod_id, p.naziv;
+
+-- Pozivanje pogleda uz sortiranje po prodanim komadima silazno
+SELECT * FROM v_analiza_popularnosti_proizvoda 
+ORDER BY ukupno_prodanih_komada DESC;
+```
+
+#### Rezultat pogleda:
+![Rezultat pogleda 3](slike/slikaRezPogled3.png)
+
+Ovaj pogledom se identificiraju najprodavaniji proizvodi u trgovini. Podaci se povlače iz bazne relacije `proizvod` i povezuju s n-torkama iz transakcijske relacije `stavka_narudzbe` pomoću operacije lijevog vanjskog spajanja (**`LEFT JOIN`**). Korištenje ovog spajanja jamči da će u konačnom rezulatu ostati sačuvani svi proizvodi iz kataloga, pa čak i oni novi artikli koji još nemaju niti jednu realiziranu prodaju, pri čemu će sustav njihove prazne podatke privremeno označiti kao `null`.
+
+U fazi projekcije, agregacijska funkcija `SUM` koristi se nad domenom atributa `sn.kolicina` i `sn.ukupna_cijena` kako bi izračunala ukupan volumen prodaje i ukupni ostvareni prihod za svaku pojedinu čokoladu. Kako se kod neprodanih artikala u tablici ne bi prikazivala prazna polja, funkcija `COALESCE` uspješno presreće nastale `null` vrijednosti i pretvara ih u jasnu konstantu `0`. Svi transakcijski podaci grupiraju se (`GROUP BY`) prema surogatnom ključu i nazivu proizvoda. Pozivanjem ovog pogleda uz završnu naredbu `ORDER BY ... DESC`, sustav na samom vrhu tablice prikazuje najpopularnije artikle s najvećim prometom, pružajući uvid u uspješnost prodaje pojednog artikla.
+
+### 7.13 Pogled 4: Konsolidirani prikaz javnih recenzija i ocjena (Danijel Margić)
+
+```sql
+CREATE OR REPLACE VIEW v_javne_recenzije_proizvoda AS
+SELECT 
+    r.recenzija_id,
+    p.naziv AS proizvod_naziv,
+    CONCAT(k.ime, ' ', k.prezime) AS kupac_autor,
+    r.ocjena,
+    r.komentar,
+    r.datum_recenzije
+FROM recenzija r
+INNER JOIN proizvod p ON r.proizvod_id = p.proizvod_id
+INNER JOIN kupac k ON r.kupac_id = k.kupac_id;
+
+-- Pozivanje pogleda uz sortiranje po ocjenama uzlazno
+SELECT * FROM v_javne_recenzije_proizvoda 
+ORDER BY ocjena ASC;
+```
+
+#### Rezultat pogleda:
+![Rezultat pogleda 4](slike/slikaRezPogled4.png)
+
+Ovaj pogled da se na jednom mjestu brzo pregleda sve povratne informacije kupaca. Podaci se povezuju iz triju različitih relacija pomoću višestruke operacije `INNER JOIN`. Spajaju se n-torke iz relacije `recenzija` s relacijama `proizvod` i `kupac` preko pripadajućih primarnih i stranih ključeva, čime se jamči očuvanje referencijskog integriteta i točno povezuje tekstualni komentar s artiklom i autorom.
+
+U sklopu generalizirane projekcije primjenjuje se funkcija `CONCAT` koja spaja tekstualne atribute imena i prezimena u jedinstveni izvedeni atribut `kupac_autor`. Pogled izravno propušta atribute surogatnog ključa recenzije, ocjene, komentara i datuma. Pozivanjem ovog pogleda uz završnu naredbu `ORDER BY ocjena ASC`, sustav na samom vrhu tablice prikazuje najslabije ocijenjene proizvode. To omogućuje trenutačnu identifikaciju kritičnih prigovora kupaca (poput otopljene čokolade ili neodgovarajućih okusa) i brzu reakciju radi poboljšanja usluge.
+
+### 7.14 Pogled 5: Operativni manifest za kurirske službe (Danijel Margić)
+
+```sql
+CREATE OR REPLACE VIEW v_logistika_dostave_detalji AS
 SELECT 
     d.dostava_id,
     d.narudzba_id,
+    CONCAT(k.ime, ' ', k.prezime) AS primatelj,
+    CONCAT(a.ulica, ', ', a.postanski_broj, ' ', a.grad) AS adresa_dostave,
     d.kurirska_sluzba,
     d.broj_posiljke,
-    d.status_dostave,
-    d.procijenjeni_datum,
-    d.stvarni_datum
-FROM dostava d;
+    d.status_dostave
+FROM dostava d
+INNER JOIN narudzba n ON d.narudzba_id = n.narudzba_id
+INNER JOIN kupac k ON n.kupac_id = k.kupac_id
+INNER JOIN adresa a ON n.adresa_id = a.adresa_id;
+
+-- Pozivanje pogleda uz filtriranje samo onih dostava koje su u tijeku
+SELECT * FROM v_logistika_dostave_detalji 
+WHERE status_dostave IN ('U tranzitu', 'Otpremljeno');
 ```
 
+#### Rezultat pogleda:
+![Rezultat pogleda 5](slike/slikaRezPogled5.png)
+
+Ovaj pogled pomaže pakirnoj službi i kuririma da na jednom mjestu vide sve podatke za isporuku paketa. Podaci se konsolidiraju iz cetiri različite relacije pomoću višestruke operacije `INNER JOIN`. Spajaju se n-torke iz relacija `dostava`, `narudzba`, `kupac` i `adresa` preko njihovih odgovarajućih primarnih i stranih ključeva. Time se strogo poštuje referencijski integritet i povezuje logistički broj pošiljke s točnim imenom i lokacijom kupca.
+
+Unutar operacije generalizirane projekcije dvaput se koristi funkcija `CONCAT` za spajanje znakovnih nizova. Prva spaja atribute imena i prezimena u izvedeni atribut `primatelj`, dok druga spaja ulica, poštanski broj i grad u jedinstveni izvedeni atribut `adresa_dostave`. Pogled izravno prikazuje i atribute surogatnog ključa dostave, kurirske službe te statusa isporuke. Pozivanjem ovog pogleda uz završnu naredbu `WHERE`, logistički tim može jednim klikom filtrirati samo aktivne pakete koji su trenutno na putu prema kupcima.
+
 &nbsp;
+
+###  8.1 Okidač: trg_stavka_narudzbe_kontrola (Objedinjena kontrola stavki narudžbe) (Danijel Margić)
+
+```sql
+DELIMITER $$
+
+CREATE TRIGGER trg_stavka_narudzbe_kontrola
+BEFORE INSERT ON stavka_narudzbe
+FOR EACH ROW
+BEGIN
+    DECLARE dostupno_na_skladistu INT;
+    
+    -- 1. Dohvaćanje trenutnog stanja na skladištu za proizvod
+    SELECT kolicina_na_skladistu INTO dostupno_na_skladistu
+    FROM proizvod
+    WHERE proizvod_id = NEW.proizvod_id;
+    
+    -- 2. Provjera ima li dovoljno robe na skladištu
+    IF NEW.kolicina > dostupno_na_skladistu THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Greška: Nema dovoljno proizvoda na skladištu za izvršavanje narudžbe!';
+    END IF;
+    
+    -- 3. Automatski izračun ukupne cijene stavke
+    SET NEW.ukupna_cijena = NEW.kolicina * NEW.cijena_po_komadu;
+END$$
+DELIMITER ;
+```
+
+#### Pokretanje okidača (Uspješan unos):
+```sql
+-- Unosimo stavku bez kolone 'ukupna_cijena' jer je triger sam računa
+INSERT INTO stavka_narudzbe (narudzba_id, proizvod_id, kolicina, cijena_po_komadu) 
+VALUES (1, 1, 2, 3.50);
+
+-- Provjera automatskog izračuna ukupne cijene (7.00)
+SELECT * FROM stavka_narudzbe WHERE narudzba_id = 1 AND proizvod_id = 1;
+```
+![Rezultat uspješnog unosa](slike/trigerSlika1_ok.png)
+
+#### Demonstracija greške (Zabrana unosa):
+```sql
+-- Pokušaj narudžbe prevelike količine (500 komada)
+INSERT INTO stavka_narudzbe (narudzba_id, proizvod_id, kolicina, cijena_po_komadu) 
+VALUES (1, 1, 500, 3.50);
+```
+![Rezultat blokade trigera](slike/trigerSlika1_error.png)
+
+Ovaj okidač služi za automatsko očuvanje integriteta skladišta i sprječavanje ljudskih pogrešaka prilikom kreiranja narudžbi. Pokreće se nad relacijom `stavka_narudzbe` prije nego što se nova n-torka trajno zapiše u bazu podataka (**`BEFORE INSERT`**). Njegova prva uloga je da pomoću lokalne varijable dohvati trenutnu vrijednost iz domene zaliha u relaciji `proizvod`. Ako predikat utvrdi da kupac pokušava naručiti količinu koja je veća od dostupne, okidač pomoću naredbe `SIGNAL SQLSTATE '45000'` fizički prekida transakciju i izbacuje jasnu poruku o grešci, čime se sprječava prodaja nepostojećih čokolada. Ako na skladištu ima dovoljno robe, okidač uspješno prolazi provjeru te kroz operaciju generalizirane projekcije samostalno računa i popunjava atribut `ukupna_cijena` množenjem količine i cijene po komadu, eliminirajući potrebu da vanjska aplikacija obavlja taj izračun.
+
+### 8.2 Okidač: trg_azuriraj_zalihe_nakon_prodaje (Automatsko ažuriranje zaliha nakon kupnje) (Danijel Margić)
+
+```sql
+DELIMITER $$
+
+CREATE TRIGGER trg_azuriraj_zalihe_nakon_prodaje
+AFTER INSERT ON stavka_narudzbe
+FOR EACH ROW
+BEGIN
+    UPDATE proizvod 
+    SET kolicina_na_skladistu = kolicina_na_skladistu - NEW.kolicina
+    WHERE proizvod_id = NEW.proizvod_id;
+END$$
+
+DELIMITER ;
+```
+
+#### Pokretanje i provjera rada okidača:
+```sql
+-- 1. Provjera stanja zaliha prije nego što kupac obavi kupnju
+SELECT kolicina_na_skladistu FROM proizvod WHERE proizvod_id = 3;
+```
+![Stanje zaliha prije kupnje](slike/trigerSlika2_prije.png)
+
+```sql
+-- 2. Pokretanje okidača: Kupac kroz stavku narudžbe kupuje 5 komada proizvoda broj 3
+INSERT INTO stavka_narudzbe (narudzba_id, proizvod_id, kolicina, cijena_po_komadu) 
+VALUES (2, 3, 5, 4.00);
+
+-- 3. Provjera stanja nakon unosa n-torke: Količina na skladištu je automatski smanjena za 5 komada
+SELECT kolicina_na_skladistu FROM proizvod WHERE proizvod_id = 3;
+```
+![Stanje zaliha nakon kupnje](slike/trigerSlika2_poslije.png)
+
+Ovaj okidač služi za automatizirano usklađivanje fizičkog stanja skladišta s realiziranom prodajom u stvarnom vremenu. Pokreće se nad relacijom `stavka_narudzbe` neposredno nakon što se nova n-torka uspješno zapiše u bazu podataka (**`AFTER INSERT`**). Njegova operativna svrha je automatsko očuvanje integriteta zaliha i sprječavanje problema prekoračenja prodaje. 
+
+Kada kupac potvrdi kupnju i podaci prođu početne provjere, ovaj okidač presreće novu n-torku te pomoću ključne riječi `NEW` uzima vrijednost iz domene njezinog atributa `kolicina`. Potom u istom transakcijskom bloku izvršava DML naredbu `UPDATE` nad referenciranom relacijom `proizvod`. Triger pronalazi odgovarajući artikl prema surogatnom ključu `proizvod_id` i aritmetičkom operacijom oduzimanja smanjuje njegov atribut `kolicina_na_skladistu`. Zahvaljujući ovom okidaču, podaci o dostupnosti čokolada na webshopu uvijek su sto posto točni i ažurni bez ikakve potrebe za ručnim intervencijama operatera.
+
+
 
 ...
 ...

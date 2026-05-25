@@ -12,6 +12,7 @@
 - **Andrej Pucković** (JMBAG: 0246066534)
 - **Danijel Margić** (JMBAG: 0275053078)
 
+
 &nbsp;
 
 ## 1. Uvod (Luka Juroš)

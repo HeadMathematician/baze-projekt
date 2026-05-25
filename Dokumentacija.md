@@ -909,7 +909,7 @@ VALUES (1, 1, 2, 3.50);
 -- Provjera automatskog izračuna ukupne cijene (7.00)
 SELECT * FROM stavka_narudzbe WHERE narudzba_id = 1 AND proizvod_id = 1;
 ```
-![Rezultat uspješnog unosa](slike/trigerSlika1_ok.png)
+![Rezultat uspješnog unosa](slike/slikaRezTriger1.png)
 
 #### Demonstracija greške (Zabrana unosa):
 ```sql
@@ -917,8 +917,6 @@ SELECT * FROM stavka_narudzbe WHERE narudzba_id = 1 AND proizvod_id = 1;
 INSERT INTO stavka_narudzbe (narudzba_id, proizvod_id, kolicina, cijena_po_komadu) 
 VALUES (1, 1, 500, 3.50);
 ```
-![Rezultat blokade trigera](slike/trigerSlika1_error.png)
-
 Ovaj okidač služi za automatsko očuvanje integriteta skladišta i sprječavanje ljudskih pogrešaka prilikom kreiranja narudžbi. Pokreće se nad relacijom `stavka_narudzbe` prije nego što se nova n-torka trajno zapiše u bazu podataka (**`BEFORE INSERT`**). Njegova prva uloga je da pomoću lokalne varijable dohvati trenutnu vrijednost iz domene zaliha u relaciji `proizvod`. Ako predikat utvrdi da kupac pokušava naručiti količinu koja je veća od dostupne, okidač pomoću naredbe `SIGNAL SQLSTATE '45000'` fizički prekida transakciju i izbacuje jasnu poruku o grešci, čime se sprječava prodaja nepostojećih čokolada. Ako na skladištu ima dovoljno robe, okidač uspješno prolazi provjeru te kroz operaciju generalizirane projekcije samostalno računa i popunjava atribut `ukupna_cijena` množenjem količine i cijene po komadu, eliminirajući potrebu da vanjska aplikacija obavlja taj izračun.
 
 ### 8.2 Okidač: trg_azuriraj_zalihe_nakon_prodaje (Automatsko ažuriranje zaliha nakon kupnje) (Danijel Margić)
@@ -943,7 +941,7 @@ DELIMITER ;
 -- 1. Provjera stanja zaliha prije nego što kupac obavi kupnju
 SELECT kolicina_na_skladistu FROM proizvod WHERE proizvod_id = 3;
 ```
-![Stanje zaliha prije kupnje](slike/trigerSlika2_prije.png)
+![Stanje zaliha prije kupnje](slike/slikaRezTriger2.png)
 
 ```sql
 -- 2. Pokretanje okidača: Kupac kroz stavku narudžbe kupuje 5 komada proizvoda broj 3
@@ -953,7 +951,7 @@ VALUES (2, 3, 5, 4.00);
 -- 3. Provjera stanja nakon unosa n-torke: Količina na skladištu je automatski smanjena za 5 komada
 SELECT kolicina_na_skladistu FROM proizvod WHERE proizvod_id = 3;
 ```
-![Stanje zaliha nakon kupnje](slike/trigerSlika2_poslije.png)
+![Stanje zaliha nakon kupnje](slike/slikaRezTriger3.png)
 
 Ovaj okidač služi za automatizirano usklađivanje fizičkog stanja skladišta s realiziranom prodajom u stvarnom vremenu. Pokreće se nad relacijom `stavka_narudzbe` neposredno nakon što se nova n-torka uspješno zapiše u bazu podataka (**`AFTER INSERT`**). Njegova operativna svrha je automatsko očuvanje integriteta zaliha i sprječavanje problema prekoračenja prodaje. 
 

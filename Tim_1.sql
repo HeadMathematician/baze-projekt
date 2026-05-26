@@ -285,7 +285,7 @@ BEGIN
         INTO random_addresa
         FROM adresa
         WHERE kupac_id = random_kupac
-        ORDER BY RAND()
+        AND glavna_adresa = 1
         LIMIT 1;
 
         INSERT INTO narudzba (
@@ -304,10 +304,10 @@ BEGIN
         );
 
         SET id_narudzbe = LAST_INSERT_ID();
+        SET j = 0;
 
         WHILE j <= 3 DO
 
-            SET j = 1;
             SET random_proizvod = FLOOR(1 + RAND() * 30);
             SET random_kolicina = FLOOR(1 + RAND() * 3);
 
@@ -370,21 +370,49 @@ SELECT
 FROM narudzba;
 
 
-INSERT INTO nabava (dobavljac_id, datum_nabave, status, ukupan_iznos)
-VALUES
-(1, NOW() - INTERVAL 30 DAY, 'Zaprimljeno', 500),
-(2, NOW() - INTERVAL 20 DAY, 'Zaprimljeno', 700),
-(3, NOW() - INTERVAL 10 DAY, 'Zaprimljeno', 600);
+INSERT INTO nabava (nabava_id, dobavljac_id, datum_nabave, status, ukupan_iznos) VALUES
+(1, 1, '2026-04-01', 'Zaprimljeno', 629.80),
+(2, 2, '2026-04-03', 'Zaprimljeno', 517.00),
+(3, 3, '2026-04-05', 'Zaprimljeno', 1047.80),
+(4, 1, '2026-04-07', 'Zaprimljeno', 977.50),
+(5, 2, '2026-04-10', 'Zaprimljeno', 696.00),
+(6, 3, '2026-04-12', 'Zaprimljeno', 1131.00),
+(7, 1, '2026-04-15', 'Zaprimljeno', 888.30),
+(8, 2, '2026-04-18', 'Zaprimljeno', 884.00),
+(9, 3, '2026-04-20', 'Zaprimljeno', 610.50),
+(10, 1, '2026-04-22', 'Zaprimljeno', 1000.00);
 
-
-INSERT INTO stavka_nabave (nabava_id, proizvod_id, kolicina, nabavna_cijena)
-VALUES
-(1, 1, 100, 2.0),
-(1, 2, 80, 2.2),
-(2, 6, 120, 1.8),
-(2, 7, 90, 2.1),
-(3, 10, 70, 2.5),
-(3, 12, 60, 2.8);
+INSERT INTO stavka_nabave (nabava_id, proizvod_id, kolicina, nabavna_cijena) VALUES
+(1, 1, 100, 2.00),
+(1, 2, 80, 2.50),
+(1, 3, 60, 3.83),
+(2, 6, 90, 2.00),
+(2, 7, 70, 2.50),
+(2, 8, 70, 2.10),
+(3, 10, 110, 2.10),
+(3, 11, 85, 2.40),
+(3, 12, 75, 5.48),
+(4, 14, 95, 2.50),
+(4, 15, 65, 3.00),
+(4, 16, 55, 8.50),
+(5, 18, 100, 2.00),
+(5, 19, 80, 2.20),
+(5, 20, 80, 3.90),
+(6, 22, 120, 2.20),
+(6, 23, 90, 2.50),
+(6, 24, 75, 6.17),
+(7, 25, 110, 2.10),
+(7, 26, 85, 2.60),
+(7, 27, 70, 5.21),
+(8, 28, 100, 2.50),
+(8, 29, 80, 3.00),
+(8, 30, 90, 3.78),
+(9, 28, 90, 2.00),
+(9, 29, 70, 2.50),
+(9, 30, 90, 3.17),
+(10, 1, 100, 2.50),
+(10, 2, 80, 3.00),
+(10, 3, 85, 6.00);
 
 
 INSERT INTO recenzija (kupac_id, proizvod_id, ocjena, komentar, datum_recenzije) VALUES

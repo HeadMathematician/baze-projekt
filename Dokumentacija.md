@@ -59,7 +59,7 @@ opis -Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod te
   
 &nbsp;
 
-### 4.1 Relacija *kupac*
+### 4.1 Relacija kupac
 
 Prati osnovne podatke o kupcima u sustavu. Relacija **kupac** se sastoji od sljedećih atributa:
 
@@ -98,15 +98,11 @@ CREATE TABLE kupac (
 
 ## 5. Popuna podacima (Luka Wrana)
 
-Glavni zadatak ovog dijela projekta bio je popuniti bazu podataka smislenim i kvalitetnim podacima koji realistično predstavljaju poslovanje e-commerce trgovine za prodaju čokolade. Cilj popune nije bio samo umetanje proizvoljnih vrijednosti, nego stvaranje povezanih i logičnih podataka koji će pravilno funkcionirati s relacijama, SQL upitima, pogledima (VIEW), procedurama i ostalim funkcionalnostima baze podataka.
+Glavni zadatak ovog dijela projekta bio je popuniti bazu podataka smislenim i kvalitetnim podacima koji realistično simuliraju e-commerce trgovinu za prodaju čokolade. Važno je stvoriti kvalitetne podatke koji će biti korisni za izvođenje upita i izradu pogleda, jer je svrha podataka njihova analiza i donošenje zaključaka na temelju dobivenih rezultata.
 
-Prilikom popune bilo je važno paziti na:
+Kada vlasnik trgovine analizira podatke o proizvodima i narudžbama, može pokušati utvrditi koji su proizvodi popularni, a koji nisu, te na temelju toga donositi poslovne odluke. Na temelju podataka, mogao bi povećati cijenu proizvoda za koje postoji velika potražnja ili prestati prodavati proizvode koji ostvaruju slabe rezultate.
 
-- povezanost podataka između relacija
-- smislenost naziva, opisa i vrijednosti
-- poštivanje primarnih i stranih ključeva
-- realistične podatke koji odgovaraju stvarnom sustavu web trgovine
-- podatke koji omogućuju kvalitetno testiranje SQL upita i analiza
+Podaci mogu biti nasumično generirani jer je ponašanje kupaca prirodno nasumičan no, podaci moraju svakako ostati smisleni i konzistentni kako bi analiza bila pouzdana te kako bi se na temelju nje mogli donositi pravilni zaključci i poslovne odluke.
 
 Za popunu podataka korištene su SQL naredbe poput:
 
@@ -125,7 +121,7 @@ Podaci su djelomično uneseni ručno pomoću statičkih SQL naredbi, dok su odre
 &nbsp;
 
 
-### 5.1 Popuna relacije *kategorija*
+### 5.1 Popuna relacije kategorija
 
 
 ```sql
@@ -140,26 +136,17 @@ INSERT INTO kategorija (kategorija_id, naziv, opis) VALUES
 
 Popuna podataka u relaciji **kategorija** vrši se unosom više zapisa pomoću SQL naredbe `INSERT INTO`. U ovom primjeru unosi se početni skup kategorija proizvoda.
 
-- **kategorija_id** se unosi ručno i predstavlja jedinstveni identifikator svake kategorije. Vrijednosti moraju biti jedinstvene.
+- **kategorija_id**- jedinstveni identifikator svake kategorije
+  
+- **naziv** - naziv kategorije
 
-- **naziv** predstavlja naziv kategorije te mora biti jedinstven i smislen kako bi jasno opisivao grupu proizvoda.
-
-- **opis** daje dodatno objašnjenje kategorije i služi za detaljniji opis sadržaja unutar svake kategorije.
-
-U prikazanom primjeru uneseno je 6 kategorija:
-
-- **Tamna čokolada** – kategorija proizvoda s visokim udjelom kakaa  
-- **Mliječna čokolada** – kremaste čokolade s dodatkom mlijeka  
-- **Bijela čokolada** – slatke čokolade bez kakaa  
-- **Praline** – ručno izrađeni proizvodi punjeni kremama i likerima  
-- **Posebne ponude** – sezonski i ograničeni proizvodi  
-- **Čokoladne figure** – dekorativni proizvodi od čokolade
+- **opis** - daje dodatno objašnjenje kategorije i služi za detaljniji opis sadržaja
 
 
 &nbsp;
 
 
-### 5.2 Popuna relacije *dobavljac*
+### 5.2 Popuna relacije dobavljac
 
 ```sql
 INSERT INTO dobavljac (dobavljac_id, naziv, kontakt_osoba, email, telefon, adresa) VALUES
@@ -170,73 +157,113 @@ INSERT INTO dobavljac (dobavljac_id, naziv, kontakt_osoba, email, telefon, adres
 
 Popuna podataka u relaciji **dobavljac** vrši se unosom više zapisa pomoću SQL naredbe `INSERT INTO`. Ova relacija sadrži informacije o dobavljačima čokolade i sirovina.
 
-- **dobavljac_id** se unosi ručno i predstavlja jedinstveni identifikator svakog dobavljača.
+- **dobavljac_id** - jedinstveni identifikator svakog dobavljača
 
-- **naziv** predstavlja ime tvrtke dobavljača.
+- **naziv** - tvrtke dobavljača.
 
-- **kontakt_osoba** označava osobu za kontakt unutar tvrtke.
+- **kontakt_osoba** - osoba za kontakt unutar tvrtke
 
-- **email** i **telefon** služe za komunikaciju s dobavljačem.
+- **email** i **telefon** - služe za komunikaciju s dobavljačem, moraju biti jedinstveni
 
-- **adresa** predstavlja lokaciju dobavljača.
-
-U prikazanom primjeru unesena su 3 dobavljača iz različitih država.
+- **adresa** - predstavlja lokaciju dobavljača
 
 
 &nbsp;
 
-### 5.3 Popuna relacije *kupac*
+### 5.3 Popuna relacije kupac
 
 ```sql
-INSERT INTO kupac (kupac_id, ime, prezime, email, lozinka, telefon) VALUES
-(1, 'Luka', 'Kovač', 'luka@gmail.com', 'pass1', '0911111111'),
-(2, 'Mia', 'Horvat', 'mia@gmail.com', 'pass2', '0911111112'),
-(3, 'Ivan', 'Barić', 'ivan@gmail.com', 'pass3', '0911111113'),
-(4, 'Ana', 'Novak', 'ana@gmail.com', 'pass4', '0911111114'),
-(5, 'Petra', 'Marić', 'petra@gmail.com', 'pass5', '0911111115'),
-(6, 'Marko', 'Šimić', 'marko@gmail.com', 'pass6', '0911111116'),
-(7, 'Dario', 'Vuković', 'dario@gmail.com', 'pass7', '0911111117'),
-(8, 'Nina', 'Kralj', 'nina@gmail.com', 'pass8', '0911111118'),
-(9, 'Josip', 'Babić', 'josip@gmail.com', 'pass9', '0911111119'),
-(10,'Sara', 'Lukic', 'sara@gmail.com', 'pass10', '0911111120');
+INSERT INTO kupac (kupac_id, ime, prezime, email, lozinka, telefon, datum_registracije, aktivan) VALUES
+(1, 'Luka', 'Kovač', 'luka.kovac@gmail.com', 'hash_pass_1', '0911111111', '2026-01-10', 1),
+(2, 'Mia', 'Horvat', 'mia.horvat@gmail.com', 'hash_pass_2', '0911111112', '2026-01-12', 1),
+(3, 'Ivan', 'Barić', 'ivan.baric@gmail.com', 'hash_pass_3', '0911111113', '2026-01-15', 1),
+(4, 'Ana', 'Novak', 'ana.novak@gmail.com', 'hash_pass_4', '0911111114', '2026-01-20', 1),
+(5, 'Petra', 'Marić', 'petra.maric@gmail.com', 'hash_pass_5', '0911111115', '2026-01-22', 1),
+(6, 'Marko', 'Šimić', 'marko.simic@gmail.com', 'hash_pass_6', '0911111116', '2026-01-25', 0),
+(7, 'Dario', 'Vuković', 'dario.vukovic@gmail.com', 'hash_pass_7', '0911111117', '2026-01-28', 1),
+(8, 'Nina', 'Kralj', 'nina.kralj@gmail.com', 'hash_pass_8', '0911111118', '2026-02-01', 1),
+(9, 'Josip', 'Babić', 'josip.babic@gmail.com', 'hash_pass_9', '0911111119', '2026-02-03', 1),
+(10, 'Sara', 'Lukić', 'sara.lukic@gmail.com', 'hash_pass_10', '0911111120', '2026-02-05', 1),
+(11, 'Stjepan', 'Radić', 'stjepan.radic@net.hr', 'hash_pass_11', '0952223344', '2026-02-10', 1),
+(12, 'Elena', 'Zadro', 'elena.zadro@gmail.com', 'hash_pass_12', '0987776655', '2026-02-12', 0),
+(13, 'Karlo', 'Perić', 'karlo.peric@outlook.com', 'hash_pass_13', '0923334455', '2026-02-14', 1),
+(14, 'Marta', 'Vidaković', 'marta.v@gmail.com', 'hash_pass_14', '0914445566', '2026-02-18', 1),
+(15, 'Tomislav', 'Prpić', 'tomo.prpic@gmail.com', 'hash_pass_15', '0998889900', '2026-02-20', 0),
+(16, 'Lucija', 'Jurić', 'lucija.juric@yahoo.com', 'hash_pass_16', '0951112233', '2026-02-22', 1),
+(17, 'Filip', 'Knežević', 'filip.k@gmail.com', 'hash_pass_17', '0915556677', '2026-02-25', 0),
+(18, 'Iva', 'Lončar', 'iva.loncar@gmail.com', 'hash_pass_18', '0981114455', '2026-02-27', 1),
+(19, 'Mateo', 'Brkić', 'mateo.brkic@gmail.com', 'hash_pass_19', '0928887766', '2026-03-01', 0),
+(20, 'Valentina', 'Blažević', 'vale.blaz@outlook.com', 'hash_pass_20', '0993332211', '2026-03-04', 1),
+(21, 'Bruno', 'Lovrić', 'bruno.lovric@gmail.com', 'hash_pass_21', '0917778899', '2026-03-06', 1),
+(22, 'Dora', 'Pavić', 'dora.pavic@gmail.com', 'hash_pass_22', '0956667788', '2026-03-10', 1),
+(23, 'Antonio', 'Tadić', 'antonio.tadic@net.hr', 'hash_pass_23', '0984445522', '2026-03-12', 1),
+(24, 'Ema', 'Vidović', 'ema.vidovic@gmail.com', 'hash_pass_24', '0921119988', '2026-03-15', 1),
+(25, 'Leon', 'Tomat', 'leon.tomat@gmail.com', 'hash_pass_25', '0913335544', '2026-03-18', 1),
+(26, 'Lana', 'Kraljević', 'lana.k@gmail.com', 'hash_pass_26', '0994441122', '2026-03-20', 1),
+(27, 'Marin', 'Sarić', 'marin.saric@gmail.com', 'hash_pass_27', '0959998877', '2026-03-22', 1),
+(28, 'Tea', 'Marković', 'tea.mar@outlook.com', 'hash_pass_28', '0912228833', '2026-03-25', 1),
+(29, 'Robert', 'Galić', 'robert.galic@gmail.com', 'hash_pass_29', '0981112299', '2026-03-28', 0),
+(30, 'Anamarija', 'Barišić', 'anamarija.b@gmail.com', 'hash_pass_30', '0926665544', '2026-04-01', 1),
+(31, 'Nikola', 'Pavičić', 'nikola.p@gmail.com', 'hash_pass_31', '0914447788', '2026-04-03', 1),
+(32, 'Helena', 'Matić', 'helena.matic@gmail.com', 'hash_pass_32', '0953339900', '2026-04-05', 1);
 ```
 
 Popuna podataka u relaciji **kupac** vrši se unosom više zapisa pomoću SQL naredbe `INSERT INTO`. Ova relacija sadrži osnovne informacije o kupcima.
 
-- **kupac_id** se unosi ručno i predstavlja jedinstveni identifikator svakog kupca.
+- **kupac_id** - predstavlja jedinstveni identifikator svakog kupca
 
-- **ime** i **prezime** predstavljaju osobne podatke kupca.
+- **ime** i **prezime** - predstavljaju osobne podatke kupca
 
-- **email** mora biti jedinstven jer se koristi za prijavu u sustav.
+- **email** - email adresa kupca, mora biti jedinstven jer se koristi za prijavu u sustav
 
-- **lozinka** predstavlja korisničku lozinku.
+- **lozinka** - predstavlja korisničku lozinku, mora biti jedinstven jer se koristi za prijavu u sustav 
 
-- **telefon** služi za kontakt s kupcem.
-
-U prikazanom primjeru uneseno je 10 kupaca:
+- **telefon** - služi za kontakt s kupcem, mora biti jedinstven
 
 
 &nbsp;
 
 
-### 5.4 Popuna relacije *adresa*
+### 5.4 Popuna relacije adresa
 
 ```sql
 INSERT INTO adresa (kupac_id, ulica, grad, postanski_broj, glavna_adresa) VALUES
-(1,'Ilica 1','Zagreb','10000',1),
-(1,'Gajeva 10','Zagreb','10000',0),
-(2,'Korzo 5','Rijeka','51000',1),
-(2,'Laginjina 2','Rijeka','51000',0),
-(3,'Strossmayerova 3','Osijek','31000',1),
-(3,'Vukovarska 9','Osijek','31000',0),
-(4,'Poljička 7','Split','21000',1),
-(4,'Riva 1','Split','21000',0),
-(5,'Dubrava 12','Zagreb','10000',1),
-(6,'Varaždinska 8','Varaždin','42000',1),
-(7,'Čakovečka 15','Čakovec','40000',1),
-(8,'Zagrebačka 22','Karlovac','47000',1),
-(9,'Trg bana 4','Zagreb','10000',1),
-(10,'Petrinjska 6','Zagreb','10000',1);
+INSERT INTO adresa (adresa_id, kupac_id, ulica, grad, postanski_broj, drzava, glavna_adresa) VALUES
+(1, 1, 'Ilica 1', 'Zagreb', '10000', 'Hrvatska', 1),
+(2, 2, 'Korzo 5', 'Rijeka', '51000', 'Hrvatska', 1),
+(3, 3, 'Strossmayerova 3', 'Osijek', '31000', 'Hrvatska', 1),
+(4, 4, 'Poljička 7', 'Split', '21000', 'Hrvatska', 1),
+(5, 5, 'Dubrava 12', 'Zagreb', '10000', 'Hrvatska', 1),
+(6, 6, 'Varaždinska 8', 'Varaždin', '42000', 'Hrvatska', 1),
+(7, 7, 'Čakovečka 15', 'Čakovec', '40000', 'Hrvatska', 1),
+(8, 8, 'Zagrebačka 22', 'Karlovac', '47000', 'Hrvatska', 1),
+(9, 9, 'Trg bana Jelačića 4', 'Zagreb', '10000', 'Hrvatska', 1),
+(10, 10, 'Petrinjska 6', 'Zagreb', '10000', 'Hrvatska', 1),
+(11, 11, 'Vukovarska 45', 'Split', '21000', 'Hrvatska', 1),
+(12, 12, 'Matije Gupca 12', 'Zadar', '23000', 'Hrvatska', 1),
+(13, 13, 'Riječka 88', 'Opatija', '51410', 'Hrvatska', 1),
+(14, 14, 'Osječka 101', 'Đakovo', '31400', 'Hrvatska', 1),
+(15, 15, 'Kralja Tomislava 2', 'Pula', '52100', 'Hrvatska', 1),
+(16, 16, 'Gundulićeva 14', 'Zagreb', '10000', 'Hrvatska', 1),
+(17, 17, 'Frankopanska 9', 'Karlovac', '47000', 'Hrvatska', 1),
+(18, 18, 'Splitska 33', 'Šibenik', '22000', 'Hrvatska', 1),
+(19, 19, 'Dubrovačka 5', 'Dubrovnik', '20000', 'Hrvatska', 1),
+(20, 20, 'Svačićeva 18', 'Slavonski Brod', '35000', 'Hrvatska', 1),
+(21, 21, 'Ante Starčevića 55', 'Vinkovci', '32100', 'Hrvatska', 1),
+(22, 22, 'Zagrebačka 112', 'Varaždin', '42000', 'Hrvatska', 1),
+(23, 23, 'Trg Slobode 3', 'Poreč', '52440', 'Hrvatska', 1),
+(24, 24, 'Križanićeva 7', 'Zagreb', '10000', 'Hrvatska', 1),
+(25, 25, 'Stanka Vraza 22', 'Samobor', '10430', 'Hrvatska', 1),
+(26, 26, 'Matice Hrvatske 4', 'Bjelovar', '43000', 'Hrvatska', 1),
+(27, 27, 'Kumičićeva 19', 'Rijeka', '51000', 'Hrvatska', 1),
+(28, 28, 'Ilirska 2', 'Osijek', '31000', 'Hrvatska', 1),
+(29, 29, 'Velebitska 67', 'Split', '21000', 'Hrvatska', 1),
+(30, 30, 'Maksimirska 90', 'Zagreb', '10000', 'Hrvatska', 1),
+(31, 31, 'Nazorova 14', 'Koprivnica', '48000', 'Hrvatska', 1),
+(32, 32, 'Držićeva 8', 'Sisak', '44000', 'Hrvatska', 1),
+(33, 1, 'Savska cesta 55', 'Zagreb', '10000', 'Hrvatska', 0),
+(35, 5, 'Cvjetna 9', 'Velika Gorica', '10410', 'Hrvatska', 0),
+(37, 12, 'Splitska 44', 'Makarska', '21300', 'Hrvatska', 0);
 ```
 
 Popuna podataka u relaciji **adresa** vrši se unosom više zapisa pomoću SQL naredbe `INSERT INTO`. Ova relacija sadrži adrese kupaca koje se koriste za dostavu narudžbi.
@@ -245,17 +272,21 @@ Svaka adresa povezana je s određenim kupcem pomoću stranog ključa `kupac_id`,
 
 Atributi u relaciji imaju sljedeću ulogu:
 
-- **kupac_id** — označava kojem kupcu pripada adresa
-- **ulica** — naziv ulice i kućni broj
-- **grad** — grad stanovanja kupca
-- **postanski_broj** — poštanski broj grada
-- **glavna_adresa** — označava je li adresa glavna adresa kupca (`1`) ili dodatna adresa (`0`)
+- **kupac_id** - označava kojem kupcu pripada adresa
+ 
+- **ulica** - naziv ulice i kućni broj
+ 
+- **grad** - grad stanovanja kupca
+ 
+- **postanski_broj** - poštanski broj grada
+ 
+- **glavna_adresa** - označava je li adresa glavna adresa kupca (`1`) ili dodatna adresa (`0`)
 
 U prikazanom primjeru neki kupci imaju više adresa, što omogućuje realističniji prikaz stvarnog sustava internetske trgovine gdje korisnici mogu imati različite adrese za dostavu.
 
 &nbsp;
 
-### 5.5 Popuna relacije *proizvod*
+### 5.5 Popuna relacije proizvod
 
 ```sql
 INSERT INTO proizvod (kategorija_id, naziv, opis, cijena, kolicina_na_skladistu, SKU) VALUES
@@ -263,55 +294,61 @@ INSERT INTO proizvod (kategorija_id, naziv, opis, cijena, kolicina_na_skladistu,
 (2,'Mliječna s dehidriranom malinom','Voćna nota maline u mliječnoj čokoladi',3.80,90,'ML2'),
 (2,'Mliječna karamel sea salt','Slatko-slana kombinacija karamele i soli',4.00,80,'ML3'),
 (2,'Mliječna čokolada s bademom','Hrskavi bademi u mliječnoj bazi',3.60,110,'ML4'),
-(2,'Mliječna kokos dream','Egzotični kokos u mliječnoj čokoladi',3.90,95,'ML5');
+(2,'Mliječna kokos dream','Egzotični kokos u mliječnoj čokoladi',3.90,95,'ML5'),
 
 
-INSERT INTO proizvod (kategorija_id, naziv, opis, cijena, kolicina_na_skladistu, SKU) VALUES
 (1,'Tamna 70% kakao','Intenzivna gorka čokolada',3.20,120,'T1'),
 (1,'Tamna s narančom','Citrusna aroma naranče',3.40,100,'T2'),
-(1,'Tamna chili spice','Ljuta čokolada s chili paprikom',3.60,85,'T3');
+(1,'Tamna chili spice','Ljuta čokolada s chili paprikom',3.60,85,'T3'),
+(1,'Tamna mint fusion','Svježa menta i tamna čokolada',3.70,75,'T4'),
+(1,'Tamna espresso intense','Bogata aroma espresso kave',3.90,65,'T5'),
 
 
-INSERT INTO proizvod (kategorija_id, naziv, opis, cijena, kolicina_na_skladistu, SKU) VALUES
 (3,'Bijela vanilija','Kremasta vanilija čokolada',3.10,110,'B1'),
 (3,'Bijela s jagodom','Voćna jagoda u bijeloj čokoladi',3.30,95,'B2'),
-(3,'Bijela pistacija','Premium pistacija blend',3.80,70,'B3');
+(3,'Bijela pistacija','Premium pistacija blend',3.80,70,'B3'),
+(3,'Bijela limun cheesecake','Kombinacija limuna i keksa',3.60,85,'B4'),
+(3,'Bijela cookies cream','Keksići u kremastoj bijeloj čokoladi',3.70,80,'B5'),
 
 
-INSERT INTO proizvod (kategorija_id, naziv, opis, cijena, kolicina_na_skladistu, SKU) VALUES
 (4,'Praline rum','Punjenje s rum kremom',5.50,60,'P1'),
 (4,'Praline lješnjak krema','Bogata lješnjak krema',5.80,65,'P2'),
-(4,'Praline espresso','Kava + čokolada kombinacija',5.60,55,'P3');
+(4,'Praline espresso','Kava + čokolada kombinacija',5.60,55,'P3'),
+(4,'Praline pistacija','Punjene pistacija kremom',6.10,50,'P4'),
+(4,'Praline caramel gold','Tekuća karamela u sredini',6.20,45,'P5'),
 
 
-INSERT INTO proizvod (kategorija_id, naziv, opis, cijena, kolicina_na_skladistu, SKU) VALUES
 (5,'Valentinovo box','Mix premium čokolada',12.90,40,'S1'),
 (5,'Božićna kolekcija','Sezonski paketić',14.90,35,'S2'),
-(5,'Gourmet tasting set','Degustacijski paket',19.90,25,'S3');
+(5,'Gourmet tasting set','Degustacijski paket',19.90,25,'S3'),
+(5,'Uskrsna kolekcija','Tematski uskrsni paket',15.90,30,'S4'),
+(5,'Luxury gold edition','Ekskluzivna premium kolekcija',24.90,15,'S5'),
 
 
-INSERT INTO proizvod (kategorija_id, naziv, opis, cijena, kolicina_na_skladistu, SKU) VALUES
 (6,'Čokoladni zeko','Ručna figura zeca',6.50,50,'F1'),
 (6,'Čokoladni medvjedić','Dekorativni medvjedić',6.80,45,'F2'),
-(6,'Čokoladno srce','Romantična figura srca',7.00,60,'F3');
+(6,'Čokoladno srce','Romantična figura srca',7.00,60,'F3'),
+(6,'Čokoladna ruža','Elegantna ruža od čokolade',7.50,40,'F4'),
+(6,'Čokoladni dinosaurus','Zabavna figura za djecu',8.20,35,'F5');
 ```
 
-Popuna podataka u relaciji **proizvod** vrši se pomoću više `INSERT INTO` naredbi. Ova relacija predstavlja glavnu tablicu proizvoda koji se prodaju unutar web trgovine.
-
-Svaki proizvod povezan je s određenom kategorijom pomoću atributa `kategorija_id`, čime se ostvaruje relacija između tablica `proizvod` i `kategorija`.
+Popuna podataka u relaciji **proizvod** vrši se pomoću više `INSERT INTO` naredbi. Ova relacija predstavlja glavnu tablicu proizvoda koji se prodaju unutar web trgovine. Svaki proizvod povezan je s određenom kategorijom pomoću atributa `kategorija_id`, čime se ostvaruje relacija između tablica `proizvod` i `kategorija`.
 
 Atributi relacije imaju sljedeću svrhu:
 
-- **kategorija_id** — određuje kojoj kategoriji proizvod pripada
-- **naziv** — naziv proizvoda
-- **opis** — dodatni opis proizvoda i njegovih karakteristika
-- **cijena** — prodajna cijena proizvoda
-- **kolicina_na_skladistu** — trenutno stanje proizvoda na skladištu
-- **SKU** — jedinstvena oznaka proizvoda koja služi za identifikaciju proizvoda u skladištu i sustavu prodaje
+- **kategorija_id** - određuje kojoj kategoriji proizvod pripada
+  
+- **naziv** - naziv proizvoda
+  
+- **opis** - dodatni opis proizvoda i njegovih karakteristika
+  
+- **cijena** - prodajna cijena proizvoda
+  
+- **kolicina_na_skladistu** - trenutno stanje proizvoda na skladištu
+  
+- **SKU** - jedinstvena oznaka proizvoda koja služi za identifikaciju proizvoda u skladištu i sustavu prodaje
 
-Prilikom popune korišteni su realistični nazivi i opisi proizvoda kako bi podaci imali smisla u kontekstu trgovine za prodaju čokolade. Proizvodi su raspoređeni po kategorijama poput mliječnih, tamnih i bijelih čokolada, pralina, posebnih ponuda i dekorativnih figura.
-
-Na taj način omogućeno je kvalitetnije testiranje SQL upita, filtriranja proizvoda po kategorijama i izrade pogleda nad bazom podataka.
+Prilikom popune korišteni su realistični nazivi i opisi proizvoda kako bi podaci imali smisla u kontekstu trgovine za prodaju čokolade. Proizvodi su raspoređeni po kategorijama poput mliječnih, tamnih i bijelih čokolada, pralina, posebnih ponuda i dekorativnih figura. Na taj način omogućeno je kvalitetnije testiranje SQL upita, filtriranja proizvoda po kategorijama i izrade pogleda nad bazom podataka.
 
 
 &nbsp;
@@ -356,7 +393,7 @@ BEGIN
 
     WHILE i <= 60 DO
 
-        SET random_kupac = FLOOR(1 + RAND() * 10);
+        SET random_kupac = FLOOR(1 + RAND() * 32);
         
         SELECT adresa_id
         INTO random_addresa
@@ -384,7 +421,8 @@ BEGIN
 
         WHILE j <= 3 DO
 
-            SET random_proizvod = FLOOR(1 + RAND() * 20);
+            SET j = 1;
+            SET random_proizvod = FLOOR(1 + RAND() * 30);
             SET random_kolicina = FLOOR(1 + RAND() * 3);
 
             INSERT INTO stavka_narudzbe (
@@ -408,11 +446,11 @@ BEGIN
         END WHILE;
 
         UPDATE narudzba n
-        SET n.ukupan_iznos = (
+        SET n.ukupan_iznos = COALESCE((
             SELECT SUM(sn.ukupna_cijena)
             FROM stavka_narudzbe sn
             WHERE sn.narudzba_id = id_narudzbe
-        )
+        ), 0)
         WHERE n.narudzba_id = id_narudzbe;
 
         SET i = i + 1;
@@ -427,17 +465,21 @@ CALL generiraj_narudzbe();
 
 &nbsp;
 
-Ova pohranjena procedura služi za automatsko generiranje testnih podataka u bazi podataka sustava za narudžbe.
+Ova pohranjena procedura služi za automatsko generiranje testnih podataka u bazi podataka sustava za narudžbe. U ovoj implementaciji procedura generira ukupno 60 narudžbi, pri čemu svaka narudžba sadrži 3 stavke narudžbe. Na taj način se automatski popunjava veća količina realističnih testnih podataka bez potrebe za ručnim unosom.
 
 Procedura redom:
 
 - generira nasumične kupce
+  
 - dohvaća njihove pripadajuće adrese
+  
 - stvara nove narudžbe
+  
 - generira stavke narudžbi s nasumično odabranim proizvodima i količinama
+  
 - izračunava ukupan iznos svake narudžbe
 
-U ovoj implementaciji procedura generira ukupno 60 narudžbi, pri čemu svaka narudžba sadrži 3 stavke narudžbe. Na taj način se automatski popunjava veća količina realističnih testnih podataka bez potrebe za ručnim unosom.
+
 
 ```sql
 DELIMITER $$
@@ -451,9 +493,7 @@ DELIMITER ;
 
 &nbsp;
 
-Delimiter je znak ili niz znakova koji označava kraj SQL naredbe. U MySQL-u se delimiter postavlja ili mijenja pomoću naredbe `DELIMITER`.
-
-Prije definiranja procedure potrebno je promijeniti standardni delimiter `;` u neki drugi simbol, primjerice `$$`, pomoću naredbe `DELIMITER $$`. Na kraju procedure naredba završava s `END $$`, nakon čega se delimiter vraća na standardni `;` pomoću naredbe `DELIMITER` ;.
+Delimiter je znak ili niz znakova koji označava kraj SQL naredbe. U MySQL-u se delimiter postavlja ili mijenja pomoću naredbe `DELIMITER`. Prije definiranja procedure potrebno je promijeniti standardni delimiter `;` u neki drugi simbol, primjerice `$$`, pomoću naredbe `DELIMITER $$`. Na kraju procedure naredba završava s `END $$`, nakon čega se delimiter vraća na standardni `;` pomoću naredbe `DELIMITER` ;.
 
 Ovo je potrebno zato što MySQL standardno koristi `;` kao završetak SQL naredbe, što funkcionira kod jednostavnih upita koji sadrže samo jednu naredbu. Međutim, procedure sadrže više SQL naredbi koje također završavaju znakom `;`, pa je potrebno definirati drugačiji delimiter kako bi MySQL znao gdje procedura završava.
 
@@ -481,9 +521,7 @@ DECLARE random_addresa INT;
 DECLARE random_kolicina INT;
 ```
 
-Sljedeći korak u proceduri je deklaracija varijabli koje će se koristiti tijekom izvođenja procedure.
-
-Varijable se deklariraju pomoću naredbe `DECLARE`, a osnovna struktura deklaracije izgleda ovako:
+Sljedeći korak u proceduri je deklaracija varijabli koje će se koristiti tijekom izvođenja procedure. Varijable se deklariraju pomoću naredbe `DECLARE`, a osnovna struktura deklaracije izgleda ovako:
 
 `DECLARE ime_varijable tip_podatka [DEFAULT zadana_vrijednost];`
 
@@ -524,11 +562,7 @@ WHILE i <= 60 DO
 END WHILE;
 ```
 
-Ovim dijelom započinje glavna `WHILE` petlja koja izvršava sve naredbe između `WHILE` i END `WHILE`.
-
-Uvjet `i <= 60` određuje koliko će se puta petlja izvršiti. U ovom slučaju procedura generira ukupno 60 narudžbi. Ako bi se željelo generirati 100 narudžbi, uvjet bi bio `i <= 100`.
-
-Naredba `END WHILE` označava kraj iteracije, nakon čega MySQL ponovno provjerava uvjet. Petlja se izvršava sve dok je uvjet zadovoljen.
+Ovim dijelom započinje glavna `WHILE` petlja koja izvršava sve naredbe između `WHILE` i END `WHILE`. Uvjet `i <= 60` određuje koliko će se puta petlja izvršiti. U ovom slučaju procedura generira ukupno 60 narudžbi. Ako bi se željelo generirati 100 narudžbi, uvjet bi bio `i <= 100`. Naredba `END WHILE` označava kraj iteracije, nakon čega MySQL ponovno provjerava uvjet. Petlja se izvršava sve dok je uvjet zadovoljen.
 
 &nbsp;
 
@@ -537,16 +571,12 @@ SET random_kupac = FLOOR(1 + RAND() * 10);
 ```
 
 
-Pomoću naredbe `SET` dodjeljuje se vrijednost varijabli `random_kupac`.
-
-Ova naredba generira nasumičan broj između 1 i 10 te ga sprema u varijablu `random_kupac`. Dobiveni broj predstavlja ID nasumično odabranog kupca iz tablice kupac.
-
-Za generiranje nasumičnog broja koriste se funkcije:
+Pomoću naredbe `SET` dodjeljuje se vrijednost varijabli `random_kupac`. Ova naredba generira nasumičan broj između 1 i 10 te ga sprema u varijablu `random_kupac`. Dobiveni broj predstavlja ID nasumično odabranog kupca iz tablice kupac. Za generiranje nasumičnog broja koriste se funkcije:
 
 **RAND()** – generira slučajni decimalni broj između 0 i 1
 **FLOOR()** – uklanja decimalni dio broja i vraća cijeli broj
 
-Izraz `RAND() * 10` generira decimalni broj između 0 i 10 (npr. 8.47). Dodavanjem vrijednosti 1 raspon se pomiče na 1–11 (npr. 9.47), dok `FLOOR()` uklanja decimalni dio i vraća cijeli broj između 1 i 10 (npr. 9).
+Izraz `RAND() * 10` generira decimalni broj između 0 i 10 (npr. 8.47). Dodavanjem vrijednosti 1 raspon se pomiče na 1–11 (npr. 9.47), dok `FLOOR()` uklanja decimalni dio i vraća cijeli broj između 1 i 10 (npr. 9). 
 
 Važno je napomenuti da ova procedura pretpostavlja da tablica `kupac` sadrži ID-eve u rasponu od 1 do 10. Kada bi u tablici postojali ID-evi izvan tog raspona, procedura jedino mogla dohvatiti prvih 10 kupaca.
 
@@ -562,9 +592,7 @@ Važno je napomenuti da ova procedura pretpostavlja da tablica `kupac` sadrži I
     LIMIT 1;
 ```
 
-Nakon što je generiran nasumični kupac, potrebno je dohvatiti jednu od njegovih adresa.
-
-Budući da tablica `adresa` već sadrži stupac `kupac_id`, nije potrebno nasumično generirati adresu. Umjesto toga, procedura dohvaća jednu adresu koja pripada prethodno odabranom kupcu pomoću jednostavnog upita.
+Nakon što je generiran nasumični kupac, potrebno je dohvatiti jednu od njegovih adresa. Budući da tablica `adresa` već sadrži stupac `kupac_id`, nije potrebno nasumično generirati adresu. Umjesto toga, procedura dohvaća jednu adresu koja pripada prethodno odabranom kupcu pomoću jednostavnog upita.
 
 Objašnjenje dijelova upita:
 
@@ -596,14 +624,7 @@ VALUES (
 );
 ```
 
-Nakon što su generirani `kupac` i `adresa`, moguće je umetnuti novu narudžbu u tablicu narudzba.
-
-Podaci se umeću pomoću naredbi `INSERT INTO` i `VALUES`.
-
-Za stupce `kupac_id` i `adresa_id` koriste se prethodno generirane vrijednosti `random_kupac` i `random_adresa`.
-
-Vrijednost stupca `datum_narudzbe` generira se pomoću izraza `DATE_SUB(NOW(), INTERVAL FLOOR(RAND()*60) DAY)` koji generira datum koji je između 0 i 60 dana udaljen od trenutnog datuma.
-
+Nakon što su generirani `kupac` i `adresa`, moguće je umetnuti novu narudžbu u tablicu narudzba. Podaci se umeću pomoću naredbi `INSERT INTO` i `VALUES`. Za stupce `kupac_id` i `adresa_id` koriste se prethodno generirane vrijednosti `random_kupac` i `random_adresa`. Vrijednost stupca `datum_narudzbe` generira se pomoću izraza `DATE_SUB(NOW(), INTERVAL FLOOR(RAND()*60) DAY)` koji generira datum koji je između 0 i 60 dana udaljen od trenutnog datuma.
 
 &nbsp;
 
@@ -629,7 +650,8 @@ SET id_narudzbe = LAST_INSERT_ID();
 
 WHILE j <= 3 DO
 
-    SET random_proizvod = FLOOR(1 + RAND() * 20);
+    SET j = 1;
+    SET random_proizvod = FLOOR(1 + RAND() * 30);
     SET random_kolicina = FLOOR(1 + RAND() * 3);
 
     INSERT INTO stavka_narudzbe (
@@ -653,15 +675,9 @@ WHILE j <= 3 DO
 END WHILE;
 ```
 
-Nakon stvaranja narudžbe potrebno je generirati njezine stavke. ID posljednje umetnute narudžbe dohvaća se pomoću funkcije `LAST_INSERT_ID()` te se sprema u varijablu `id_narudzbe`.
+Nakon stvaranja narudžbe potrebno je generirati njezine stavke. ID posljednje umetnute narudžbe dohvaća se pomoću funkcije `LAST_INSERT_ID()` te se sprema u varijablu `id_narudzbe`. Unutarnjoj kontrolnoj varijabli `j` potrebno se dodatno dodijeliti vrijednost od 1 iako ona ima definiranu `DEFAULT` vrijednost od 1.
 
-Unutarnja kontrolna varijabla `j` deklarirana je na početku procedure pomoću:
-
-`DECLARE j INT DEFAULT 1;`
-
-Na taj način svaki novi ciklus glavne petlje automatski započinje s početnom vrijednošću 1, bez potrebe za dodatnim resetiranjem unutar tijela petlje. Unutarnja `WHILE` petlja izvršava se tri puta te za svaku narudžbu generira tri stavke narudžbe (uvjet `j <= 3`).
-
-Tijekom svake iteracije generiraju se nasumični ID proizvoda i nasumična količina proizvoda. Varijabla `random_proizvod` dobiva vrijednost između 1 i 20, dok `random_kolicina` dobiva vrijednost između 1 i 3. Na taj način svaka narudžba dobiva tri stavke s različitim proizvodima i količinama.
+Na taj način svaki novi ciklus glavne petlje automatski započinje s početnom vrijednošću 1, bez potrebe za dodatnim resetiranjem unutar tijela petlje. Unutarnja `WHILE` petlja izvršava se tri puta te za svaku narudžbu generira tri stavke narudžbe (uvjet `j <= 3`). Tijekom svake iteracije generiraju se nasumični ID proizvoda i nasumična količina proizvoda. Varijabla `random_proizvod` dobiva vrijednost između 1 i 20, dok `random_kolicina` dobiva vrijednost između 1 i 3. Na taj način svaka narudžba dobiva tri stavke s različitim proizvodima i količinama.
 
 
 &nbsp;
@@ -707,11 +723,11 @@ Na kraju petlje koristi se `SET j = j + 1` što povećava brojač unutarnje petl
 
 ```sql
 UPDATE narudzba n
-    SET n.ukupan_iznos = (
+    SET n.ukupan_iznos = COALESCE((
         SELECT SUM(sn.ukupna_cijena)
         FROM stavka_narudzbe sn
         WHERE sn.narudzba_id = id_narudzbe
-    )
+    ), 0)
     WHERE n.narudzba_id = id_narudzbe;
 
     SET i = i + 1;
@@ -735,30 +751,32 @@ Nakon što je procedura definirana i spremljena u bazu podataka, može se pokren
 &nbsp;
 
 
-### 5.7 Popuna relacije *placanje*
+### 5.7 Popuna relacije placanje
 
 ```sql
 INSERT INTO placanje (narudzba_id, nacin_placanja, iznos, status_placanja, datum_placanja)
 SELECT 
     narudzba_id,
-    ELT(FLOOR(1 + RAND()*3), 'Kartica', 'Pouzećem', 'PayPal'),
+    ELT(FLOOR(1 + RAND()*3), 'Kartica', 'Poduzećem', 'PayPal'),
     ukupan_iznos,
     'Plaćeno',
     datum_narudzbe + INTERVAL FLOOR(RAND()*2) DAY
 FROM narudzba;
 ```
 
-Popuna podataka u relaciji **placanje** vrši se pomoću naredbe `INSERT INTO ... SELECT`. Za razliku od prethodnih relacija gdje su vrijednosti unesene ručno, ovdje se podaci automatski generiraju na temelju postojećih podataka iz relacije `narudzba`.
-
-Svako plaćanje povezano je s jednom narudžbom pomoću atributa `narudzba_id`.
+Popuna podataka u relaciji **placanje** vrši se pomoću naredbe `INSERT INTO ... SELECT`. Za razliku od prethodnih relacija gdje su vrijednosti unesene ručno, ovdje se podaci automatski generiraju na temelju postojećih podataka iz relacije `narudzba`. Svako plaćanje povezano je s jednom narudžbom pomoću atributa `narudzba_id`.
 
 Atributi relacije imaju sljedeću svrhu:
 
-- **narudzba_id** — označava kojoj narudžbi pripada plaćanje
-- **nacin_placanja** — način kojim je kupac izvršio plaćanje
-- **iznos** — ukupni iznos plaćanja
-- **status_placanja** — status izvršenog plaćanja
-- **datum_placanja** — datum kada je plaćanje izvršeno
+- **narudzba_id** - označava kojoj narudžbi pripada plaćanj
+
+- **nacin_placanja** - način kojim je kupac izvršio plaćanje
+
+- **iznos** - ukupni iznos plaćanja
+
+- **status_placanja** - status izvršenog plaćanja
+
+- **datum_placanja** - datum kada je plaćanje izvršeno
 
 Za generiranje nasumičnog načina plaćanja koristi se funkcija:
 
@@ -766,17 +784,13 @@ Za generiranje nasumičnog načina plaćanja koristi se funkcija:
 ELT(FLOOR(1 + RAND()*3), 'Kartica', 'Pouzećem', 'PayPal')
 ```
 
-Funkcija `RAND()` generira slučajni broj, dok `ELT()` na temelju tog broja odabire jednu od ponuđenih vrijednosti.
-
-Iznos plaćanja preuzima se direktno iz stupca `ukupan_iznos` relacije `narudzba`, čime se osigurava konzistentnost podataka između relacija.
-
-Datum plaćanja generira se dodavanjem 0–1 dana na datum narudžbe kako bi podaci realistično prikazivali proces online kupovine.
+Funkcija `RAND()` generira slučajni broj, dok `ELT()` na temelju tog broja odabire jednu od ponuđenih vrijednosti. Iznos plaćanja preuzima se direktno iz stupca `ukupan_iznos` relacije `narudzba`, čime se osigurava konzistentnost podataka između relacija. Datum plaćanja generira se dodavanjem 0–1 dana na datum narudžbe kako bi podaci realistično prikazivali proces online kupovine.
 
 
 &nbsp;
 
 
-### 5.8 Popuna relacije *dostava*
+### 5.8 Popuna relacije dostava
 
 ```sql
 INSERT INTO dostava (narudzba_id, kurirska_sluzba, broj_posiljke, status_dostave, procijenjeni_datum, stvarni_datum)
@@ -790,30 +804,31 @@ SELECT
 FROM narudzba;
 ```
 
-Popuna relacije **dostava** također koristi `INSERT INTO ... SELECT` pristup kojim se podaci generiraju na temelju postojećih narudžbi.
+Popuna relacije **dostava** također koristi `INSERT INTO ... SELECT` pristup kojim se podaci generiraju na temelju postojećih narudžbi. Ova relacija sadrži informacije o dostavi svake narudžbe. Atributi relacije imaju sljedeću svrhu:
 
-Ova relacija sadrži informacije o dostavi svake narudžbe.
+- **narudzba_id** - označava kojoj narudžbi pripada dostava
 
-Atributi relacije imaju sljedeću svrhu:
+- **kurirska_sluzba** - naziv dostavne službe
 
-- **narudzba_id** — označava kojoj narudžbi pripada dostava
-- **kurirska_sluzba** — naziv dostavne službe
-- **broj_posiljke** — jedinstveni broj pošiljke
-- **status_dostave** — trenutno stanje dostave
-- **procijenjeni_datum** — očekivani datum dostave
-- **stvarni_datum** — datum kada je pošiljka stvarno dostavljena
+- **broj_posiljke** - jedinstveni broj pošiljke
 
-Kurirska služba bira se nasumično pomoću funkcije `ELT()`, dok se broj pošiljke generira pomoću `CONCAT()` funkcije koja spaja prefiks `"HR"` i slučajno generirani broj.
+- **status_dostave** - trenutno stanje dostave
 
-Procijenjeni datum dostave postavljen je tri dana nakon datuma narudžbe, dok stvarni datum dostave može odstupati za jedan dan kako bi podaci izgledali realističnije.
+- **procijenjeni_datum** - očekivani datum dostave
+
+- **stvarni_datum** - datum kada je pošiljka stvarno dostavljena
+
+Kurirska služba bira se nasumično pomoću funkcije `ELT()`, dok se broj pošiljke generira pomoću `CONCAT()` funkcije koja spaja prefiks `"HR"` i slučajno generirani broj.  Procijenjeni datum dostave postavljen je tri dana nakon datuma narudžbe, dok stvarni datum dostave može odstupati za jedan dan kako bi podaci izgledali realističnije.
 
 
 &nbsp;
 
 
-### 5.9 Popuna relacije *nabava*
+### 5.9 Popuna relacije nabava
 
 ```sql
+INSERT INTO nabava (dobavljac_id, datum_nabave, status, ukupan_iznos)
+VALUES
 (1, NOW() - INTERVAL 30 DAY, 'Zaprimljeno', 500),
 (2, NOW() - INTERVAL 20 DAY, 'Zaprimljeno', 700),
 (3, NOW() - INTERVAL 10 DAY, 'Zaprimljeno', 600);
@@ -823,10 +838,14 @@ Relacija **nabava** sadrži podatke o nabavi proizvoda od dobavljača. Svaka nab
 
 Atributi relacije imaju sljedeću svrhu:
 
-- **dobavljac_id** — označava od kojeg dobavljača dolazi nabava
-- **datum_nabave** — datum kada je nabava izvršena
-- **status** — stanje nabave
-- **ukupan_iznos** — ukupna vrijednost nabave
+- **dobavljac_id** - označava od kojeg dobavljača dolazi nabava
+
+- **datum_nabave** - datum kada je nabava izvršena
+
+- **status** - stanje nabave
+
+- **ukupan_iznos** - ukupna vrijednost nabave
+
 
 Datumi nabave generirani su pomoću `NOW()` funkcije i vremenskih intervala kako bi podaci predstavljali nabave izvršene u prošlosti.
 
@@ -834,7 +853,7 @@ Datumi nabave generirani su pomoću `NOW()` funkcije i vremenskih intervala kako
 &nbsp;
 
 
-### 5.11 Popuna relacije *stavka_nabave*
+### 5.11 Popuna relacije stavka_nabave
 
 ```sql
 INSERT INTO stavka_nabave (nabava_id, proizvod_id, kolicina, nabavna_cijena)
@@ -851,10 +870,13 @@ Relacija **stavka_nabave** predstavlja pojedinačne proizvode koji pripadaju odr
 
 Atributi relacije imaju sljedeću svrhu:
 
-- **nabava_id** — označava kojoj nabavi pripada stavka
-- **proizvod_id** — označava koji je proizvod nabavljen
-- **kolicina** — količina nabavljenog proizvoda
-- **nabavna_cijena** — cijena po kojoj je proizvod nabavljen
+- **nabava_id** - označava kojoj nabavi pripada stavka
+
+- **proizvod_id** - označava koji je proizvod nabavljen
+
+- **kolicina** - količina nabavljenog proizvoda
+
+- **nabavna_cijena** - cijena po kojoj je proizvod nabavljen
 
 Podaci su uneseni ručno kako bi se simulirala stvarna nabava različitih proizvoda od različitih dobavljača.
 
@@ -862,43 +884,51 @@ Podaci su uneseni ručno kako bi se simulirala stvarna nabava različitih proizv
 &nbsp;
 
 
-### 5.12 Popuna relacije *recenzija*
+### 5.12 Popuna relacije recenzija
 
 ```sql
-INSERT INTO recenzija (kupac_id, proizvod_id, ocjena, komentar)
-VALUES
-(1,1,5,'Odlična čokolada!'),
-(2,2,4,'Jako dobra, ali malo preslatka'),
-(3,3,5,'Savršena kombinacija okusa'),
-(4,4,4,'Fina i kremasta'),
-(5,5,5,'Top proizvod!'),
-(6,6,3,'Ok, ali očekivao sam više'),
-(7,7,5,'Super okus naranče'),
-(8,8,4,'Dobra, ali ljuta'),
-(9,9,5,'Najbolja bijela čokolada'),
-(10,10,4,'Vrlo ukusna'),
-(1,6,5,'Tamna mi je favorit'),
-(2,7,5,'Savršena aroma'),
-(3,8,4,'Zanimljiva kombinacija'),
-(4,9,5,'Odlična tekstura'),
-(5,10,4,'Fino i lagano'),
-(6,11,5,'Jagoda top'),
-(7,12,5,'Pistacija odlična'),
-(8,13,4,'Rum punjenje super'),
-(9,14,5,'Lješnjak fantastičan'),
-(10,15,5,'Espresso pun pogodak');
+INSERT INTO recenzija (kupac_id, proizvod_id, ocjena, komentar, datum_recenzije) VALUES
+(1, 1, 5, 'Odlična čokolada, lješnjaci su krupni i fino pečeni.', '2026-05-11 10:00:00'),
+(1, 2, 4, 'Jako ukusno, malo slađe nego što sam očekivao.', '2026-05-11 10:05:00'),
+(2, 4, 5, 'Savršeni bademi, tekstura je vrhunska i kremasta.', '2026-05-13 11:15:00'),
+(3, 1, 5, 'Najbolja mliječna čokolada na tržištu, kupujem opet.', '2026-05-16 09:30:00'),
+(5, 12, 3, 'Rum se previše osjeti, ali sama čokolada je u redu.', '2026-05-21 14:22:00'),
+(6, 2, 5, 'Savršena voćna nota, malina daje odličnu kiselost.', '2026-05-23 15:00:00'),
+(8, 1, 4, 'Klasičan dobar okus, standardna kvaliteta.', '2026-05-24 09:00:00'),
+(9, 8, 5, 'Chili se osjeti taman koliko treba na kraju.', '2026-05-24 10:15:00'),
+(10, 6, 5, 'Pravi izbor za ljubitelje tamne i gorke čokolade.', '2026-05-24 10:45:00'),
+(11, 3, 4, 'Dobra kombinacija soli i karamele, hrskavo.', '2026-05-24 11:00:00'),
+(12, 10, 2, 'Menta mi nikako ne odgovara u ovoj kombinaciji.', '2026-05-24 11:10:00'),
+(13, 3, 5, 'Karamela je fantastična, slanoća pogađa balans.', '2026-05-24 11:20:00'),
+(14, 15, 5, 'Kutija uživo izgleda prekrasno, odličan poklon.', '2026-05-24 11:35:00'),
+(16, 14, 4, 'Fini mekani tartufi, bogat okus pravog kakaa.', '2026-05-24 11:50:00'),
+(17, 13, 5, 'Nugat krema je nevjerojatno glatka, preporuka.', '2026-05-24 12:10:00'),
+(18, 15, 4, 'Premium pakiranje i brza dostava, čokolade ukusne.', '2026-05-24 12:30:00'),
+(19, 11, 3, 'Malo previše slatko za moj ukus, ali tekstura je OK.', '2026-05-24 12:45:00'),
+(20, 18, 5, 'Prava tradicionalna griotta, višnja je sočna.', '2026-05-24 13:15:00'),
+(21, 16, 5, 'Odličan blagdanski mix, djeca su oduševljena.', '2026-05-24 13:30:00'),
+(22, 2, 4, 'Dobra čokolada, komadići maline su svježi.', '2026-05-24 14:00:00'),
+(23, 16, 4, 'Uskrsna košarica je bogata, isplati se kupiti.', '2026-05-24 14:15:00'),
+(24, 19, 3, 'Zanimljiv okus figure, ali nije za svaki dan.', '2026-05-24 14:45:00'),
+(25, 12, 4, 'Kvalitetan rum i jak okus.', '2026-05-24 15:00:00'),
+(26, 1, 5, 'Moja omiljena čokolada s lješnjacima, bez greške.', '2026-05-24 15:20:00'),
+(27, 16, 5, 'Božićni začini se osjete u cijeloj kući, predivno.', '2026-05-24 15:40:00'),
+(28, 10, 1, 'Čokolada je stigla otopljena, jako loše iskustvo.', '2026-05-24 15:55:00'),
+(29, 3, 5, 'Najbolji omjer cijene i kvalitete za slani karamel.', '2026-05-24 16:15:00'),
+(30, 17, 5, 'Degustacijski set je vrhunski vođen kroz okuse.', '2026-05-24 16:45:00'),
+(15, 5, 4, 'Kokos daje odličnu teksturu mliječnoj bazi.', '2026-05-24 17:00:00'),
+(4, 17, 5, 'Poklon paket je pun pogodak za rođendan.', '2026-05-24 17:15:00');
 ```
 
-Relacija **recenzija** sadrži korisničke recenzije i ocjene proizvoda. Ova relacija omogućuje prikaz povratnih informacija kupaca i analizu zadovoljstva proizvodima.
+Relacija **recenzija** sadrži korisničke recenzije i ocjene proizvoda. Ova relacija omogućuje prikaz povratnih informacija kupaca i analizu zadovoljstva proizvodima. Svaka recenzija povezana je s jednim kupcem i jednim proizvodom pomoću stranih ključeva `kupac_id` i `proizvod_id`. Atributi relacije imaju sljedeću svrhu:
 
-Svaka recenzija povezana je s jednim kupcem i jednim proizvodom pomoću stranih ključeva `kupac_id` i `proizvod_id`.
+- **kupac_id** - označava autora recenzije
 
-Atributi relacije imaju sljedeću svrhu:
+- **proizvod_id** - označava proizvod koji se recenzira
 
-- **kupac_id** — označava autora recenzije
-- **proizvod_id** — označava proizvod koji se recenzira
-- **ocjena** — brojčana ocjena proizvoda
-- **komentar** — tekstualni komentar kupca
+- **ocjena** - brojčana ocjena proizvoda
+
+- **komentar** - tekstualni komentar kupca
 
 Prilikom popune korištene su različite ocjene i komentari kako bi podaci djelovali realističnije i omogućili kvalitetnije testiranje agregacijskih SQL funkcija poput `AVG()`, `COUNT()` i filtriranja recenzija po proizvodima.
 
@@ -924,8 +954,6 @@ pri čemu `A1, A2` predstavljaju atribute (stupce), `r1, r2` relacije (tablice),
 
 ### 6.1 Upit: Ukupan broj narudžbi i potrošnja po kupcu (Andrej Pucović)
 
-Ovaj upit prikazuje ukupan broj narudžbi, ukupnu potrošnju i prosječnu vrijednost narudžbe za svakog kupca. Povezuju se relacije `kupac` i `narudzba`, a podaci se grupiraju prema kupcu korištenjem naredbe `GROUP BY`. Agregacijske funkcije `COUNT`, `SUM` i `AVG` koriste se za izračun broja narudžbi, ukupne potrošnje i prosječne vrijednosti narudžbe. Uvjet `HAVING` koristi se za prikaz samo kupaca koji imaju barem jednu narudžbu. Upit je koristan za analizu kupaca i prepoznavanje najaktivnijih kupaca trgovine.
-
 ```sql
 SELECT 
     k.kupac_id,
@@ -941,9 +969,13 @@ HAVING COUNT(n.narudzba_id) >= 1
 ORDER BY ukupno_potroseno DESC;
 ```
 
-### 6.2 Upit: Najprodavaniji proizvodi po količini i prihodu (Andrej Pucović)
+Ovaj upit prikazuje ukupan broj narudžbi, ukupnu potrošnju i prosječnu vrijednost narudžbe za svakog kupca. Povezuju se relacije `kupac` i `narudzba`, a podaci se grupiraju prema kupcu korištenjem naredbe `GROUP BY`. Agregacijske funkcije `COUNT`, `SUM` i `AVG` koriste se za izračun broja narudžbi, ukupne potrošnje i prosječne vrijednosti narudžbe. Uvjet `HAVING` koristi se za prikaz samo kupaca koji imaju barem jednu narudžbu. Upit je koristan za analizu kupaca i prepoznavanje najaktivnijih kupaca trgovine.
 
-Ovaj upit prikazuje proizvode koji su ostvarili najveću prodaju prema količini prodanih proizvoda i ukupnom prihodu. Povezuju se relacije `proizvod`, `kategorija` i `stavka_narudzbe`, a podaci se grupiraju prema proizvodu i kategoriji. Agregacijska funkcija `SUM` koristi se za izračun ukupno prodane količine i ukupnog prihoda proizvoda. Rezultati su sortirani prema količini prodaje i prihodu, dok se pomoću `LIMIT` prikazuje samo prvih pet proizvoda. Upit je koristan za analizu najuspješnijih proizvoda u trgovini.
+
+&nbsp;
+
+
+### 6.2 Upit: Najprodavaniji proizvodi po količini i prihodu (Andrej Pucović)
 
 ```sql
 SELECT 
@@ -960,9 +992,13 @@ ORDER BY ukupno_prodano DESC, ukupni_prihod DESC
 LIMIT 5;
 ```
 
-### 6.3 Upit: Proizvodi koji nisu prodani (Andrej Pucović)
+Ovaj upit prikazuje proizvode koji su ostvarili najveću prodaju prema količini prodanih proizvoda i ukupnom prihodu. Povezuju se relacije `proizvod`, `kategorija` i `stavka_narudzbe`, a podaci se grupiraju prema proizvodu i kategoriji. Agregacijska funkcija `SUM` koristi se za izračun ukupno prodane količine i ukupnog prihoda proizvoda. Rezultati su sortirani prema količini prodaje i prihodu, dok se pomoću `LIMIT` prikazuje samo prvih pet proizvoda. Upit je koristan za analizu najuspješnijih proizvoda u trgovini.
 
-Ovaj upit prikazuje proizvode koji se ne pojavljuju ni u jednoj narudžbi kupaca. Koristi se `LEFT JOIN` između relacija `proizvod` i `stavka_narudzbe`, dok uvjet `IS NULL` služi za pronalazak proizvoda bez povezanih zapisa u stavkama narudžbe. Rezultati se sortiraju prema nazivu proizvoda. Upit je koristan za prepoznavanje proizvoda koji se ne prodaju te može pomoći pri analizi ponude i upravljanju skladištem.
+
+&nbsp;
+
+
+### 6.3 Upit: Proizvodi koji nisu prodani (Andrej Pucović)
 
 ```sql
 SELECT 
@@ -976,9 +1012,13 @@ WHERE sn.proizvod_id IS NULL
 ORDER BY p.naziv;
 ```
 
-### 6.4 Upit: Kupci čija je potrošnja veća od prosjeka (Andrej Pucović)
+Ovaj upit prikazuje proizvode koji se ne pojavljuju ni u jednoj narudžbi kupaca. Koristi se `LEFT JOIN` između relacija `proizvod` i `stavka_narudzbe`, dok uvjet `IS NULL` služi za pronalazak proizvoda bez povezanih zapisa u stavkama narudžbe. Rezultati se sortiraju prema nazivu proizvoda. Upit je koristan za prepoznavanje proizvoda koji se ne prodaju te može pomoći pri analizi ponude i upravljanju skladištem.
 
-Ovaj upit prikazuje kupce čija je ukupna potrošnja veća od prosječne potrošnje svih kupaca. U unutarnjem upitu računa se ukupna potrošnja po kupcu, a zatim se u vanjskom upitu prikazuju samo oni kupci čija je potrošnja veća od prosječne vrijednosti. Koriste se ugniježđeni podupiti, agregacijska funkcija `SUM`, funkcija `AVG` te grupiranje podataka po kupcu. Upit je koristan za prepoznavanje kupaca koji ostvaruju iznadprosječnu vrijednost kupovine.
+
+&nbsp;
+
+
+### 6.4 Upit: Kupci čija je potrošnja veća od prosjeka (Andrej Pucović)
 
 ```sql
 SELECT *
@@ -1002,9 +1042,13 @@ WHERE x.ukupna_potrosnja > (
 ORDER BY x.ukupna_potrosnja DESC;
 ```
 
-### 6.5 Upit: Mjesečni prihod trgovine (Andrej Pucović)
+Ovaj upit prikazuje kupce čija je ukupna potrošnja veća od prosječne potrošnje svih kupaca. U unutarnjem upitu računa se ukupna potrošnja po kupcu, a zatim se u vanjskom upitu prikazuju samo oni kupci čija je potrošnja veća od prosječne vrijednosti. Koriste se ugniježđeni podupiti, agregacijska funkcija `SUM`, funkcija `AVG` te grupiranje podataka po kupcu. Upit je koristan za prepoznavanje kupaca koji ostvaruju iznadprosječnu vrijednost kupovine.
 
-Ovaj upit prikazuje broj narudžbi, ukupni prihod i prosječnu vrijednost narudžbe po mjesecima. Podaci se dohvaćaju iz relacije `narudzba`, a funkcije `YEAR` i `MONTH` koriste se za grupiranje podataka prema godini i mjesecu narudžbe. Agregacijske funkcije `COUNT`, `SUM` i `AVG` omogućavaju analizu prodaje kroz određena vremenska razdoblja. Upit je koristan za praćenje poslovanja trgovine i analizu mjesečnih prihoda.
+
+&nbsp;
+
+
+### 6.5 Upit: Mjesečni prihod trgovine (Andrej Pucović)
 
 ```sql
 SELECT 
@@ -1018,7 +1062,11 @@ GROUP BY YEAR(datum_narudzbe), MONTH(datum_narudzbe)
 ORDER BY godina, mjesec;
 ```
 
+Ovaj upit prikazuje broj narudžbi, ukupni prihod i prosječnu vrijednost narudžbe po mjesecima. Podaci se dohvaćaju iz relacije `narudzba`, a funkcije `YEAR` i `MONTH` koriste se za grupiranje podataka prema godini i mjesecu narudžbe. Agregacijske funkcije `COUNT`, `SUM` i `AVG` omogućavaju analizu prodaje kroz određena vremenska razdoblja. Upit je koristan za praćenje poslovanja trgovine i analizu mjesečnih prihoda.
+
+
 &nbsp;
+
 
 ### 6.6 Upit : Usporedba prodajne cijene i zadnje nabavne cijene po komadu (Danijel Margić)
 
@@ -1040,7 +1088,11 @@ ORDER BY marza_postotak DESC;
 
 Ovaj upit služi za procjenu profitabilnosti proizvoda tako što uspoređuje njihovu prodajnu cijenu s prosječnom nabavnom cijenom. Podaci se preuzimaju iz tablice `proizvod`, a zatim se pomoću `INNER JOIN` spajaju sa zapisima iz tablice `stavka_nabave`, pri čemu se spajanje vrši preko relacije `p.proizvod_id = sn.proizvod_id`. Na taj način u analizu ulaze samo proizvodi koji imaju evidentirane nabave. Nad stupcem `sn.nabavna_cijena` primjenjuje se agregatna funkcija `AVG` kako bi se izračunala prosječna nabavna cijena za svaki proizvod. Nakon toga određuje se profit po komadu kao razlika između prodajne cijene iz tablice proizvod i izračunate prosječne nabavne cijene. Iz istih vrijednosti računa se i marža u postotku, koja pokazuje koliki dio prodajne cijene predstavlja zarada. Budući da se koriste agregatne funkcije, podaci se grupiraju prema identifikatoru, nazivu i prodajnoj cijeni proizvoda, što omogućuje da svaki proizvod bude prikazan kao jedan agregirani zapis. Rezultati se zatim sortiraju tako da se proizvodi s najvećom maržom nalaze na vrhu, čime upit omogućuje brzi uvid u najprofitabilnije artikle i potencijalne prilike za optimizaciju cijena ili nabavne strategije.
 
-### 6.7 UPIT: Ukupna zarada, broj narudžbi i prosječna vrijednost košarice po kategorijama (Danijel Margić)
+
+&nbsp;
+
+
+### 6.7 Upit: Ukupna zarada, broj narudžbi i prosječna vrijednost košarice po kategorijama (Danijel Margić)
 
 ```sql
 SELECT 
@@ -1062,7 +1114,11 @@ Ovaj upit služi za identifikaciju najprofitabilnijih segmenata asortimana kroz 
 
 Nad atributom `sn.narudzba_id` primjenjuje se funkcija `COUNT(DISTINCT)` koja prebrojava unikatne n-torke narudžbi unutar multiskupa i eliminira duplikate nastale zbog više stavki u istoj košarici. Agregacijska funkcija `SUM` koristi se nad domenom atributa količine i ukupne cijene stavki kako bi izračunala ukupan volumen prodaje i ukupni ostvareni prihod. Istovremeno, funkcija `AVG` računa srednju vrijednost pojedinačnih stavki u narudžbi, zaokruženu funkcijom `ROUND` na dvije decimale. Svi prikupljeni transakcijski podaci grupiraju se (`GROUP BY`) prema nazivu i identifikatoru kategorije, što omogućuje sažeti prikaz performansi svake skupine proizvoda. Rezultati se sortiraju silazno prema ukupnom prihodu (`ORDER BY ... DESC`), uvid u to koje kategorije čokolada generiraju najveći promet na platformi.
 
-### 6.8 UPIT: Kontrola kvalitete asortimana kroz najbolje ocijenjene proizvode (Danijel Margić)
+
+&nbsp;
+
+
+### 6.8 Upit: Kontrola kvalitete asortimana kroz najbolje ocijenjene proizvode (Danijel Margić)
 
 ```sql
 SELECT 
@@ -1085,7 +1141,11 @@ Ovaj upit služi za kontrolu kvalitete asortimana i izdvajanje artikala s najvi�
 
 Nad domenom atributa `r.ocjena` primjenjuje se agregatna funkcija `AVG` kako bi se izračunala prosječna ocjena za svaki proizvod, zaokružena funkcijom `ROUND` na dvije decimale radi preciznosti. Istovremeno, funkcija `COUNT` prebrojava unikatne n-torke unutar atributa `r.recenzija_id` radi utvrđivanja ukupnog broja ocjena. Budući da se koriste agregatne funkcije nad multiskupovima, podaci se grupiraju (`GROUP BY`) prema identifikatoru, nazivu i cijeni proizvoda. Ključni dio upita je primjena klauzule `HAVING` koja vrši restrikciju skupina i propušta samo proizvode s barem dvije zaprimljene recenzije, čime se eliminiraju artikli s nerealno visokim ocjenama na temelju samo jednog glasa. Rezultati se sortiraju primarno prema prosječnoj ocjeni silazno (`DESC`), a sekundarno prema broju recenzija, pružajući jasan uvid u najkvalitetnije i najpopularnije proizvode na platformi.
 
-### 6.9 UPIT: Upravljanje skladištem i identifikacija kritičnih zaliha popularnih artikala (Danijel Margić)
+
+&nbsp;
+
+
+### 6.9 Upit: Upravljanje skladištem i identifikacija kritičnih zaliha popularnih artikala (Danijel Margić)
 
 ```sql
 SELECT 
@@ -1109,7 +1169,11 @@ Ovaj upit služi za upravljanje skladištem i pravovremenu identifikaciju artika
 
 Ključni dio upita nalazi se u klauzuli `WHERE` koja vrši restrikciju na razini n-torki pomoću ugniježđenog skalarnog podupita. Taj podupit izračunava srednju vrijednost domene atributa `kolicina_na_skladistu` za sve aktivne artikle pomoću funkcije `AVG`. Glavni upit potom kroz operaciju selekcije propušta samo one proizvode čija je pojedinačna zaliha strogo manja od tog izračunatog prosjeka. Agregacijska funkcija `SUM` zbraja količine unutar multiskupa atributa `sn.kolicina` kako bi prikazala ukupan broj prodanih komada. Podaci se grupiraju (`GROUP BY`) prema identifikatoru, nazivu i stanju zaliha proizvoda, što omogućuje čisti pregled po svakom artiklu. Rezultati se sortiraju uzlazno (`ASC`) prema količini na skladištu, postavljajući najugroženije proizvode s kritičnim zalihama na sam vrh liste kako bi voditelj nabave odmah znao što treba ponovno naručiti od dobavljača.
 
-### 6.10 UPIT: Analiza prometa asortimana (Danijel Margić)
+
+&nbsp;
+
+
+### 6.10 Upit: Analiza prometa asortimana (Danijel Margić)
 
 ```sql
 SELECT 
@@ -1131,6 +1195,7 @@ Ovaj upit služi za  analizu prometa asortimana s ciljem identifikacije proizvod
 
 U fazi projekcije nad multiskupovima, funkcija `SUM` zbraja količine i ukupne prihode. Ključni element je primjena funkcije `COALESCE`, koja provodi generaliziranu projekciju i automatski zamjenjuje nastale `null` vrijednosti s konstantom `0` za sve proizvode bez realiziranog prometa. Podaci se grupiraju (`GROUP BY`) prema identifikatoru, unikatnom prirodnom ključu `SKU` i nazivu artikla. Rezultati se sortiraju uzlazno (`ORDER BY ... ASC`) prema broju prodanih komada. Na taj način, upit na samom vrhu tablice  prikazuje čokolade koje nitko nije kupio.
 
+
 &nbsp;
 
 
@@ -1149,7 +1214,9 @@ WHERE P;
 
 pri čemu `view_name` predstavlja naziv pogleda, `A1, A2` atribute koji će biti prikazani, `r1, r2` relacije (tablice), a `P` predikat selekcije.
 
+
 &nbsp;
+
 
 ### 7.1 Pogled: Proizvodi po ukupnom prihodu (Luka Wrana)
 
@@ -1170,70 +1237,15 @@ FROM prihod_po_proizvodu
 ORDER BY ukupni_prihod DESC;
 ```
 
-Pogledi (VIEW) u MySQL-u predstavljaju virtualne tablice koje se temelje na rezultatima jednog ili više SQL upita. Oni ne spremaju podatke fizički kao obične tablice, nego svaki put prikazuju rezultat izvršavanja definiranog upita.
+Ovaj pogled služi za analizu prihoda koje je svaki proizvod ostvario tijekom posljednjih mjesec dana. Podaci se dohvaćaju iz relacija `proizvod`, `stavka_narudzbe` i `narudzba`, koje se povezuju pomoću `JOIN` naredbi kako bi se svaki proizvod povezao s pripadajućim stavkama narudžbi i informacijama o narudžbama.
 
-Glavna prednost pogleda je pojednostavljivanje kompleksnih SQL upita i lakši pristup često korištenim analizama podataka.
+Ukupan prihod računa se množenjem količine proizvoda s cijenom po komadu za svaku stavku narudžbe, nakon čega se sve vrijednosti zbrajaju pomoću funkcije `SUM()`. Rezultati se grupiraju po proizvodu kako bi svaki proizvod imao svoj ukupni ostvareni prihod.
 
-U ovom primjeru izrađen je pogled `prihod_po_proizvodu` čija je svrha prikazati proizvode sortirane prema ukupnom prihodu koji su ostvarili u posljednjih mjesec dana.
+Pogled uključuje samo narudžbe iz posljednjih mjesec dana te omogućuje prikaz proizvoda sortiranih od najvećeg prema najmanjem prihodu. Takva analiza korisna je za prepoznavanje najprofitabilnijih proizvoda, praćenje prodajnih trendova i donošenje poslovnih odluka vezanih uz cijene, promocije i nabavu.
 
-Pogled koristi podatke iz sljedećih relacija:
-
-- `proizvod`
-- `stavka_narudzbe`
-- `narudzba`
-
-Povezivanje relacija izvršava se pomoću `JOIN` naredbi:
-
-```sql
-JOIN stavka_narudzbe sn ON p.proizvod_id = sn.proizvod_id
-JOIN narudzba n ON n.narudzba_id = sn.narudzba_id
-```
-
-Na taj način svaki proizvod dobiva povezane stavke narudžbi i informacije o narudžbi kojoj pripada.
-
-Ukupan prihod proizvoda računa se pomoću izraza:
-
-```sql
-SUM(sn.kolicina * sn.cijena_po_komadu)
-```
-
-Za svaku stavku narudžbe množi se količina proizvoda s cijenom po komadu, a zatim se sve vrijednosti zbrajaju pomoću funkcije `SUM()`.
-
-Rezultati se grupiraju pomoću:
-
-```sql
-GROUP BY p.proizvod_id, p.naziv
-```
-
-što omogućuje izračun ukupnog prihoda za svaki pojedini proizvod.
-
-Uvjet:
-
-```sql
-WHERE n.datum_narudzbe >= DATE_SUB(NOW(), INTERVAL 1 MONTH)
-```
-
-ograničava rezultate samo na narudžbe iz posljednjih mjesec dana.
-
-Nakon kreiranja pogleda koristi se:
-
-```sql
-SELECT *
-FROM prihod_po_proizvodu
-ORDER BY ukupni_prihod DESC;
-```
-
-Ovaj upit dohvaća podatke iz pogleda i sortira proizvode od najvećeg prema najmanjem ukupnom prihodu.
-
-Takav pogled koristan je za:
-
-- analizu najprofitabilnijih proizvoda
-- praćenje prodajnih trendova
-- donošenje odluka o nabavi i promocijama
-- prepoznavanje proizvoda koji ostvaruju najveću zaradu
-  
 
 &nbsp;
+
 
 ### 7.2 Pogled: Popularnost proizvoda po ukupnoj količini narudžba (Luka Wrana)
 
@@ -1254,57 +1266,15 @@ FROM proizvodi_po_kolicini
 ORDER BY ukupna_kolicina DESC;
 ```
 
-Ovaj pogled služi za analizu popularnosti proizvoda na temelju ukupne prodane količine u posljednjih mjesec dana.
+Ovaj pogled koristi se za analizu popularnosti proizvoda na temelju ukupne prodane količine tijekom posljednjih mjesec dana. Za razliku od prethodnog pogleda koji je fokusiran na financijski prihod, ovdje je naglasak na količini prodanih proizvoda.
 
-Za razliku od prethodnog pogleda koji analizira financijski prihod, ovdje je fokus na količini prodanih proizvoda.
+Pogled povezuje relacije `proizvod`, `stavka_narudzbe` i `narudzba`, a ukupna količina svakog proizvoda računa se zbrajanjem svih prodanih jedinica pomoću funkcije `SUM()`. Rezultati se grupiraju po proizvodu kako bi bilo moguće prikazati ukupnu prodanu količinu za svaki pojedini proizvod.
 
-Pogled koristi iste relacije:
+Analiza uključuje samo novije narudžbe iz posljednjih mjesec dana, a rezultati se sortiraju prema najvećoj prodanoj količini. Takav pogled koristan je za planiranje zaliha, optimizaciju skladišta i prepoznavanje proizvoda s najvećom potražnjom.
 
-- `proizvod`
-- `stavka_narudzbe`
-- `narudzba`
-
-Ukupna količina proizvoda računa se pomoću:
-
-```sql
-SUM(sn.kolicina)
-```
-
-Funkcija `SUM()` zbraja količine svih prodanih jedinica pojedinog proizvoda.
-
-Rezultati se ponovno grupiraju po proizvodu:
-
-```sql
-GROUP BY p.proizvod_id, p.naziv
-```
-
-Uvjet:
-
-```sql
-WHERE n.datum_narudzbe >= DATE_SUB(NOW(), INTERVAL 1 MONTH)
-```
-
-osigurava da analiza uključuje samo novije narudžbe.
-
-Nakon kreiranja pogleda koristi se:
-
-```sql
-SELECT *
-FROM proizvodi_po_kolicini
-ORDER BY ukupna_kolicina DESC;
-```
-
-što omogućuje prikaz najprodavanijih proizvoda prema količini.
-
-Ovakav pogled koristan je za:
-
-- analizu popularnosti proizvoda
-- planiranje zaliha
-- prepoznavanje proizvoda s najvećom potražnjom
-- optimizaciju skladišta i nabave
-  
 
 &nbsp;
+
 
 ### 7.3 Pogled: Koeficijen bulk-narudžba (Luka Wrana)
 
@@ -1334,73 +1304,17 @@ FROM koeficijent_kolicine_po_proizvodu
 ORDER BY prosjecna_kolicina_po_narudzbi DESC;
 ```
 
-Ovaj pogled služi za analizu prosječne količine proizvoda po narudžbi, odnosno određivanje proizvoda koji se najčešće kupuju u većim količinama.
+Ovaj pogled služi za analizu prosječne količine proizvoda po narudžbi, odnosno za prepoznavanje proizvoda koji se najčešće kupuju u većim količinama. Cilj pogleda je identificirati proizvode koji imaju najveći potencijal za bulk-prodaju.
 
-Cilj pogleda je identificirati proizvode koji imaju najveći potencijal za bulk-prodaju.
+Pogled koristi podatke iz `relacija proizvod`, `stavka_narudzbe` i `narudzba`. Za svaki proizvod računa se ukupna prodana količina te broj različitih narudžbi u kojima se proizvod pojavljuje. Na temelju tih vrijednosti izračunava se prosječna količina proizvoda po jednoj narudžbi.
 
-Pogled koristi podatke iz relacija:
-
-- `proizvod`
-- `stavka_narudzbe`
-- `narudzba`
-
-Unutar pogleda izračunavaju se tri ključne vrijednosti:
-
-- ukupna prodana količina proizvoda
-- broj različitih narudžbi u kojima se proizvod pojavljuje
-- prosječna količina proizvoda po narudžbi
-
-Ukupna količina računa se pomoću:
-
-```sql
-SUM(sn.kolicina)
-```
-
-Broj različitih narudžbi računa se pomoću:
-
-```sql
-COUNT(DISTINCT n.narudzba_id)
-```
-
-Korištenje `DISTINCT` osigurava da se ista narudžba ne broji više puta.
-
-Glavni dio pogleda je izračun:
-
-```sql
-SUM(sn.kolicina) / COUNT(DISTINCT n.narudzba_id)
-```
-
-Ovaj izraz računa prosječnu količinu proizvoda po jednoj narudžbi.
-
-Zaštita od dijeljenja s nulom ostvarena je pomoću `CASE` izraza:
-
-```sql
-CASE 
-    WHEN COUNT(DISTINCT n.narudzba_id) = 0 THEN 0
-    ELSE ...
-END
-```
-
-Rezultati se sortiraju prema najvećoj prosječnoj količini po narudžbi:
-
-```sql
-ORDER BY prosjecna_kolicina_po_narudzbi DESC;
-```
-
-Takav pogled koristan je za:
-
-- prepoznavanje proizvoda koji se kupuju u većim količinama
-- planiranje promotivnih paketa
-- analizu ponašanja kupaca
-- optimizaciju skladišnih zaliha
-- donošenje poslovnih odluka vezanih uz bulk-prodaju
+Rezultati se sortiraju prema najvećoj prosječnoj količini po narudžbi, što omogućuje jednostavno prepoznavanje proizvoda koje kupci često naručuju u većim količinama. Takva analiza korisna je za planiranje promotivnih paketa, optimizaciju skladišta i donošenje poslovnih odluka vezanih uz bulk-prodaju.
 
 
 &nbsp;
 
-### 7.5 Pogled: Aktivni kupci s osnovnim podacima (Andrej Pucović)
 
-Ovaj pogled prikazuje osnovne informacije o aktivnim kupcima unutar sustava. Podaci se dohvaćaju iz relacije `kupac`, pri čemu se pomoću uvjeta `WHERE` prikazuju samo kupci koji su označeni kao aktivni. Pogled ne prikazuje lozinku kupca, čime se ograničava prikaz osjetljivih podataka.
+### 7.4 Pogled: Aktivni kupci s osnovnim podacima (Andrej Pucović)
 
 ```sql
 CREATE VIEW AP_Pogled_aktivni_kupci AS
@@ -1415,9 +1329,13 @@ FROM kupac
 WHERE aktivan = TRUE;
 ```
 
-### 7.6 Pogled: Proizvodi i njihove kategorije (Andrej Pucović)
+Ovaj pogled prikazuje osnovne informacije o aktivnim kupcima unutar sustava. Podaci se dohvaćaju iz relacije `kupac`, pri čemu se pomoću uvjeta `WHERE` prikazuju samo kupci koji su označeni kao aktivni. Pogled ne prikazuje lozinku kupca, čime se ograničava prikaz osjetljivih podataka.
 
-Ovaj pogled prikazuje proizvode zajedno s pripadajućim kategorijama. Koristi se `RIGHT JOIN` kako bi se prikazale i kategorije koje trenutno možda nemaju nijedan proizvod. Na taj način pogled nije ograničen samo na postojeće proizvode, nego daje širi pregled kategorija i povezanih proizvoda.
+
+&nbsp;
+
+
+### 7.6 Pogled: Proizvodi i njihove kategorije (Andrej Pucović)
 
 ```sql
 CREATE VIEW AP_Pogled_proizvodi_kategorije AS
@@ -1432,9 +1350,13 @@ FROM proizvod p
 RIGHT JOIN kategorija k ON p.kategorija_id = k.kategorija_id;
 ```
 
-### 7.7 Pogled: Detalji narudžbi (Andrej Pucović)
+Ovaj pogled prikazuje proizvode zajedno s pripadajućim kategorijama. Koristi se `RIGHT JOIN` kako bi se prikazale i kategorije koje trenutno možda nemaju nijedan proizvod. Na taj način pogled nije ograničen samo na postojeće proizvode, nego daje širi pregled kategorija i povezanih proizvoda.
 
-Ovaj pogled prikazuje informacije o narudžbama, kupcima i adresama dostave. Povezuju se relacije `narudzba`, `kupac` i `adresa`, čime se dobiva pregled važnih podataka vezanih uz narudžbu. Pogled ne prikazuje osjetljive podatke poput lozinke kupca.
+
+&nbsp;
+
+
+### 7.7 Pogled: Detalji narudžbi (Andrej Pucović)
 
 ```sql
 CREATE VIEW AP_Pogled_detalji_narudzbi AS
@@ -1451,9 +1373,13 @@ JOIN kupac k ON n.kupac_id = k.kupac_id
 JOIN adresa a ON n.adresa_id = a.adresa_id;
 ```
 
-### 7.8 Pogled: Stavke narudžbi (Andrej Pucović)
+Ovaj pogled prikazuje informacije o narudžbama, kupcima i adresama dostave. Povezuju se relacije `narudzba`, `kupac` i `adresa`, čime se dobiva pregled važnih podataka vezanih uz narudžbu. Pogled ne prikazuje osjetljive podatke poput lozinke kupca.
 
-Ovaj pogled prikazuje stavke narudžbi zajedno s nazivom proizvoda. Koristi se `JOIN` s dodatnim uvjetom usporedbe, odnosno theta join uvjetom, gdje se prikazuju samo stavke čija je ukupna cijena veća od cijene po komadu. Time se izdvajaju stavke kod kojih je naručena količina veća od jednog komada.
+
+&nbsp;
+
+
+### 7.8 Pogled: Stavke narudžbi (Andrej Pucović)
 
 ```sql
 CREATE VIEW AP_Pogled_stavke_narudzbe AS
@@ -1470,9 +1396,13 @@ JOIN proizvod p
     AND sn.ukupna_cijena > sn.cijena_po_komadu;
 ```
 
-### 7.9 Pogled: Plaćanja narudžbi (Andrej Pucović)
+Ovaj pogled prikazuje stavke narudžbi zajedno s nazivom proizvoda. Koristi se `JOIN` s dodatnim uvjetom usporedbe, odnosno theta join uvjetom, gdje se prikazuju samo stavke čija je ukupna cijena veća od cijene po komadu. Time se izdvajaju stavke kod kojih je naručena količina veća od jednog komada.
 
-Ovaj pogled prikazuje plaćanja zajedno s osnovnim podacima o narudžbi i kupcu. Povezuju se relacije `placanje`, `narudzba` i `kupac`, čime se dobiva korisniji pregled od samog prikaza relacije `placanje`. Pogled je koristan za praćenje načina plaćanja, statusa plaćanja i kupca koji je vezan uz narudžbu.
+
+&nbsp;
+
+
+### 7.9 Pogled: Plaćanja narudžbi (Andrej Pucović)
 
 ```sql
 CREATE VIEW AP_Pogled_placanja_narudzbi AS
@@ -1490,7 +1420,11 @@ JOIN narudzba n ON p.narudzba_id = n.narudzba_id
 JOIN kupac k ON n.kupac_id = k.kupac_id;
 ```
 
+Ovaj pogled prikazuje plaćanja zajedno s osnovnim podacima o narudžbi i kupcu. Povezuju se relacije `placanje`, `narudzba` i `kupac`, čime se dobiva korisniji pregled od samog prikaza relacije `placanje`. Pogled je koristan za praćenje načina plaćanja, statusa plaćanja i kupca koji je vezan uz narudžbu.
+
+
 &nbsp;
+
 
 ### 7.10 Pogled: Prikaz ukupne potrošnje i aktivnosti po kupcima (Danijel Margić)
 
@@ -1519,6 +1453,10 @@ Ovaj pogled sluzi da se brzo vidi potrošačke navike i vjernost kupaca bez stal
 
 U sklopu generalizirane projekcije primjenjuje se funkcija `CONCAT` koja spaja tekstualne atribute imena i prezimena u jedno polje. Nad multiskupom atributa `n.narudzba_id` izvršava se agregatna funkcija `COUNT` radi dobivanja ukupnog broja kupnji. Istovremeno, funkcija `SUM` zbraja iznose unutar domene atributa `n.ukupan_iznos`. Ključni element unutar projekcije je funkcija `COALESCE` koja presreće `null` vrijednosti nastale kod pasivnih kupaca i automatski ih pretvara u konstantu `0`. Svi transakcijski pokazatelji grupiraju se (`GROUP BY`) prema surogatnom ključu kupca, njegovom e-mailu i punom imenu. Pozivanjem ovog pogleda uz završnu naredbu `ORDER BY ... DESC`, sustav prikazuje kupce sortirane tako da se oni koji su najviše potrošili nalaze na samom vrhu liste.
 
+
+&nbsp;
+
+
 ### 7.11 Pogled: Pregled aktivnosti i troškova opskrbnog lanca (Danijel Margić)
 
 ```sql
@@ -1545,6 +1483,10 @@ Ovaj pogled pomaže kako bi se brzo provjerilo koliko često surađujemo s kojim
 
 U fazi projekcije, funkcija `COUNT` prebrojava unikatne n-torke realiziranih nabava iz popisa transakcija. Agregacijska funkcija `SUM` zbraja sve izdatke unutar domene atributa `n.ukupan_iznos`. Kako se kod novih ili neaktivnih dobavljača u pogledu ne bi prikazivala prazna polja, funkcija `COALESCE` uspješno presreće nastale `null` vrijednosti i pretvara ih u jasnu konstantu `0`. Svi podaci se logički strukturiraju i grupiraju (`GROUP BY`) prema surogatnom ključu i nazivu dobavljača. Pozivanjem ovog pogleda uz završnu naredbu `ORDER BY ... DESC`, pogled na samom vrhu prikazuje partnere s kojima ostvarujemo najveći financijski promet, dok se na dnu nalze dobavljači s nula realiziranih narudžbi.
 
+
+&nbsp;
+
+
 ### 7.12 Pogled: Prikaz volumena prodaje (Danijel Margić)
 
 ```sql
@@ -1570,7 +1512,11 @@ Ovaj pogledom se identificiraju najprodavaniji proizvodi u trgovini. Podaci se p
 
 U fazi projekcije, agregacijska funkcija `SUM` koristi se nad domenom atributa `sn.kolicina` i `sn.ukupna_cijena` kako bi izračunala ukupan volumen prodaje i ukupni ostvareni prihod za svaku pojedinu čokoladu. Kako se kod neprodanih artikala u tablici ne bi prikazivala prazna polja, funkcija `COALESCE` uspješno presreće nastale `null` vrijednosti i pretvara ih u jasnu konstantu `0`. Svi transakcijski podaci grupiraju se (`GROUP BY`) prema surogatnom ključu i nazivu proizvoda. Pozivanjem ovog pogleda uz završnu naredbu `ORDER BY ... DESC`, sustav na samom vrhu tablice prikazuje najpopularnije artikle s najvećim prometom, pružajući uvid u uspješnost prodaje pojednog artikla.
 
-### 7.13 Pogled 4: Konsolidirani prikaz javnih recenzija i ocjena (Danijel Margić)
+
+&nbsp;
+
+
+### 7.13 Pogled: Konsolidirani prikaz javnih recenzija i ocjena (Danijel Margić)
 
 ```sql
 CREATE OR REPLACE VIEW v_javne_recenzije_proizvoda AS
@@ -1597,7 +1543,11 @@ Ovaj pogled da se na jednom mjestu brzo pregleda sve povratne informacije kupaca
 
 U sklopu generalizirane projekcije primjenjuje se funkcija `CONCAT` koja spaja tekstualne atribute imena i prezimena u jedinstveni izvedeni atribut `kupac_autor`. Pogled izravno propušta atribute surogatnog ključa recenzije, ocjene, komentara i datuma. Pozivanjem ovog pogleda uz završnu naredbu `ORDER BY ocjena ASC`, sustav na samom vrhu tablice prikazuje najslabije ocijenjene proizvode. To omogućuje trenutačnu identifikaciju kritičnih prigovora kupaca (poput otopljene čokolade ili neodgovarajućih okusa) i brzu reakciju radi poboljšanja usluge.
 
-### 7.14 Pogled 5: Operativni manifest za kurirske službe (Danijel Margić)
+
+&nbsp;
+
+
+### 7.14 Pogled: Operativni manifest za kurirske službe (Danijel Margić)
 
 ```sql
 CREATE OR REPLACE VIEW v_logistika_dostave_detalji AS
@@ -1626,7 +1576,9 @@ Ovaj pogled pomaže pakirnoj službi i kuririma da na jednom mjestu vide sve pod
 
 Unutar operacije generalizirane projekcije dvaput se koristi funkcija `CONCAT` za spajanje znakovnih nizova. Prva spaja atribute imena i prezimena u izvedeni atribut `primatelj`, dok druga spaja ulica, poštanski broj i grad u jedinstveni izvedeni atribut `adresa_dostave`. Pogled izravno prikazuje i atribute surogatnog ključa dostave, kurirske službe te statusa isporuke. Pozivanjem ovog pogleda uz završnu naredbu `WHERE`, logistički tim može jednim klikom filtrirati samo aktivne pakete koji su trenutno na putu prema kupcima.
 
+
 &nbsp;
+
 
 ###  8.1 Okidač: trg_stavka_narudzbe_kontrola (Objedinjena kontrola stavki narudžbe) (Danijel Margić)
 
@@ -1676,6 +1628,10 @@ VALUES (1, 1, 500, 3.50);
 ![Rezultat blokade trigera](slike/trigerSlika1_error.png)
 
 Ovaj okidač služi za automatsko očuvanje integriteta skladišta i sprječavanje ljudskih pogrešaka prilikom kreiranja narudžbi. Pokreće se nad relacijom `stavka_narudzbe` prije nego što se nova n-torka trajno zapiše u bazu podataka (**`BEFORE INSERT`**). Njegova prva uloga je da pomoću lokalne varijable dohvati trenutnu vrijednost iz domene zaliha u relaciji `proizvod`. Ako predikat utvrdi da kupac pokušava naručiti količinu koja je veća od dostupne, okidač pomoću naredbe `SIGNAL SQLSTATE '45000'` fizički prekida transakciju i izbacuje jasnu poruku o grešci, čime se sprječava prodaja nepostojećih čokolada. Ako na skladištu ima dovoljno robe, okidač uspješno prolazi provjeru te kroz operaciju generalizirane projekcije samostalno računa i popunjava atribut `ukupna_cijena` množenjem količine i cijene po komadu, eliminirajući potrebu da vanjska aplikacija obavlja taj izračun.
+
+
+&nbsp;
+
 
 ### 8.2 Okidač: trg_azuriraj_zalihe_nakon_prodaje (Automatsko ažuriranje zaliha nakon kupnje) (Danijel Margić)
 

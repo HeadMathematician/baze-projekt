@@ -1,6 +1,6 @@
 #### Sveučilište Jurja Dobrile u Puli Zagrebačka 30, 52100 Pula, Hrvatska
 
-# BP1 Projekt - E-commerce trgovinu za prodaju čokolade 
+# BP1 Projekt - E-commerce trgovinu za prodaju čokolade
 
 ## Tim-1
 
@@ -15,11 +15,13 @@
 &nbsp;
 
 ## 1. Uvod (Luka Juroš)
+
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-  
+
 &nbsp;
 
 ## 2. Opis projekta (Luka Juroš)
+
 - Podjela projekta (napravi sarzaj)
 - Što je naša tema i objasniti koncept projekta
 - Za što se ova baza koristi i kakofuncionira
@@ -32,7 +34,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 #### 3.1 Definiranje poslovnog procesa (ER + EER Dijagram)
 
 - objasniti strukturu
-- zašto se koriste ER i EER? Što su? Kako funcioniraju? Kako se rade? 
+- zašto se koriste ER i EER? Što su? Kako funcioniraju? Kako se rade?
 
 &nbsp;
 
@@ -52,13 +54,13 @@ opis -Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod te
 
 ## 4. Relacije (Teo Kupčinovac)
 
- opis
+opis
 
- - objasniti kako se stvaraju relacije u MySQL 
-  
+- objasniti kako se stvaraju relacije u MySQL
+
 &nbsp;
 
-### 4.1 Relacija *kupac*
+### 4.1 Relacija _kupac_
 
 Prati osnovne podatke o kupcima u sustavu. Relacija **kupac** se sastoji od sljedećih atributa:
 
@@ -96,14 +98,216 @@ CREATE TABLE kupac (
 
 &nbsp;
 
+### 4.2 Relacija _adresa_
+
+Kupac može imati više adresa za dostavu, primjerice kućnu i poslovnu. Primarni ključ je **adresa_id** koji se automatski povećava. **kupac_id** je strani ključ prema tablici _kupac_, s `ON DELETE CASCADE`, dakle brisanjem kupca automatski se brišu i sve njegove adrese. **ulica**, **grad** i **postanski_broj** su obavezni atributi tipa `VARCHAR`. Zanimljivo je da **postanski_broj** nije `INT` nego `VARCHAR`, zato jer neki poštanski brojevi počinju nulom. **drzava** ima zadanu vrijednost `'Hrvatska'` pa ju nije potrebno ručno unositi za svaki zapis. **glavna_adresa** je `BOOLEAN` koji označava je li ta adresa primarna za dostavu. Kupac može imati više adresa, ali samo jedna može biti glavna.
+
+```sql
+CREATE TABLE adresa (
+    adresa_id INT AUTO_INCREMENT PRIMARY KEY,
+    kupac_id INT NOT NULL,
+    ulica VARCHAR(150) NOT NULL,
+    grad VARCHAR(100) NOT NULL,
+    postanski_broj VARCHAR(10) NOT NULL,
+    drzava VARCHAR(60) DEFAULT 'Hrvatska',
+    glavna_adresa BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (kupac_id) REFERENCES kupac(kupac_id) ON DELETE CASCADE
+);
+```
+
+&nbsp;
+
+### 4.3 Relacija _dobavljac_
+
+Pohranjuje kontaktne podatke tvrtki od kojih nabavljamo sirovine i gotove proizvode. **dobavljac_id** je primarni ključ s `AUTO_INCREMENT`. **naziv** je obavezan, dok su **kontakt_osoba**, **telefon** i **adresa** opcionalni jer ne mora svaka tvrtka imati specificiranog kontakta. **email** je obavezan i jedinstven (`NOT NULL` i `UNIQUE`). Ne mogu postojati dva dobavljača s istom email adresom.
+
+```sql
+CREATE TABLE dobavljac (
+    dobavljac_id INT AUTO_INCREMENT PRIMARY KEY,
+    naziv VARCHAR(150) NOT NULL,
+    kontakt_osoba VARCHAR(100),
+    email VARCHAR(100) NOT NULL UNIQUE,
+    telefon VARCHAR(20),
+    adresa VARCHAR(200)
+);
+```
+
+&nbsp;
+
+### 4.4 Relacija _kategorija_
+
+Grupira proizvode u logične cjeline kako bi pretraživanje u webshop-u bilo jednostavnije. Posebno je zanimljiv atribut **nadkategorija_id** strani ključ koji pokazuje na samu tablicu _kategorija_, tzv. samoreferencijalni odnos. Njime se postiže hijerarhija kategorija, primjerice "Mliječna čokolada" može biti podkategorija od "Čokolade". Ako je `NULL`, ta je kategorija na najvišoj razini. **naziv** je obavezan, **opis** je opcionalan.
+
+```sql
+CREATE TABLE kategorija (
+    kategorija_id INT AUTO_INCREMENT PRIMARY KEY,
+    nadkategorija_id INT,
+    naziv VARCHAR(100) NOT NULL,
+    opis TEXT,
+    FOREIGN KEY (nadkategorija_id) REFERENCES kategorija(kategorija_id)
+);
+```
+
+&nbsp;
+
+### 4.5 Relacija _proizvod_
+
+Srž cijelog kataloga, svaki artikl koji prodajemo ima ovdje svoj zapis. **kategorija_id** je strani ključ koji ga smješta u odgovarajuću kategoriju. **cijena** je tipa `DECIMAL(10,2)` umjesto `FLOAT` jer se radi o novcu i bitna je preciznost na dvije decimale. **SKU** (Stock Keeping Unit) je interna šifra proizvoda koja mora biti jedinstvena (`UNIQUE`). **aktivan** je `BOOLEAN` koji omogućuje tkzv. meko brisanje, kad povučemo proizvod iz prodaje, ne brišemo ga iz baze nego ga samo označimo kao neaktivnog, čime čuvamo povijest. **datum_dodavanja** se automatski popunjava s `CURRENT_TIMESTAMP` pri unosu.
+
+```sql
+CREATE TABLE proizvod (
+    proizvod_id INT AUTO_INCREMENT PRIMARY KEY,
+    kategorija_id INT NOT NULL,
+    naziv VARCHAR(150) NOT NULL,
+    opis TEXT,
+    cijena DECIMAL(10,2) NOT NULL,
+    kolicina_na_skladistu INT DEFAULT 0,
+    SKU VARCHAR(50) UNIQUE,
+    aktivan BOOLEAN DEFAULT TRUE,
+    datum_dodavanja DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (kategorija_id) REFERENCES kategorija(kategorija_id)
+);
+```
+
+&nbsp;
+
+### 4.6 Relacija _narudzba_
+
+Bilježi svaku kupovinu u webshop-u. Sadrži strane ključeve prema **kupac** i **adresa**. Pri naručivanju kupac odabire na koju od svojih adresa šalje paket. **datum_narudzbe** bilježi točan trenutak kreiranja narudžbe, **status** prati fazu obrade (npr. "U obradi", "Poslano", "Završena"), a **ukupan_iznos** tipa `DECIMAL(12,2)` predstavlja ukupnu vrijednost svih stavki te narudžbe.
+
+```sql
+CREATE TABLE narudzba (
+    narudzba_id INT AUTO_INCREMENT PRIMARY KEY,
+    kupac_id INT NOT NULL,
+    adresa_id INT NOT NULL,
+    datum_narudzbe DATETIME,
+    status VARCHAR(50),
+    ukupan_iznos DECIMAL(12,2),
+    FOREIGN KEY (kupac_id) REFERENCES kupac(kupac_id),
+    FOREIGN KEY (adresa_id) REFERENCES adresa(adresa_id)
+);
+```
+
+&nbsp;
+
+### 4.7 Relacija _stavka_narudzbe_
+
+Budući da jedna narudžba može sadržavati više različitih proizvoda, svaki redak u košarici postaje zasebna stavka. **narudzba_id** i **proizvod_id** su strani ključevi koji je vežu uz narudžbu i konkretni proizvod. **kolicina** je obavezna. **cijena_po_komadu** sprema se u trenutku narudžbe, a ne uzima se direktno iz tablice _proizvod_, to je namjerno, jer bi inače naknadna promjena cijene utjecala i na stare narudžbe. **ukupna_cijena** je umnožak količine i cijene po komadu.
+
+```sql
+CREATE TABLE stavka_narudzbe (
+    stavka_id INT AUTO_INCREMENT PRIMARY KEY,
+    narudzba_id INT NOT NULL,
+    proizvod_id INT NOT NULL,
+    kolicina INT NOT NULL,
+    cijena_po_komadu DECIMAL(10,2) NOT NULL,
+    ukupna_cijena DECIMAL(12,2),
+    FOREIGN KEY (narudzba_id) REFERENCES narudzba(narudzba_id),
+    FOREIGN KEY (proizvod_id) REFERENCES proizvod(proizvod_id)
+);
+```
+
+&nbsp;
+
+### 4.8 Relacija _placanje_
+
+Bilježi detalje transakcije za svaku narudžbu. **narudzba_id** je strani ključ prema narudžbi. **nacin_placanja** opisuje kako je kupac platio (npr. "Kartica", "PayPal", "Pouzećem"), **status_placanja** prati je li plaćanje uspješno, a **datum_placanja** bilježi točan trenutak kad je transakcija izvršena.
+
+```sql
+CREATE TABLE placanje (
+    placanje_id INT AUTO_INCREMENT PRIMARY KEY,
+    narudzba_id INT,
+    nacin_placanja VARCHAR(50),
+    iznos DECIMAL(12,2),
+    status_placanja VARCHAR(50),
+    datum_placanja DATETIME,
+    FOREIGN KEY (narudzba_id) REFERENCES narudzba(narudzba_id)
+);
+```
+
+&nbsp;
+
+### 4.9 Relacija _dostava_
+
+Nakon što je narudžba plaćena, paket se predaje kurirskoj službi. **narudzba_id** veže dostavu uz narudžbu. **kurirska_sluzba** i **broj_posiljke** (tracking broj) daju kupcu mogućnost praćenja paketa. **procijenjeni_datum** i **stvarni_datum** su oba tipa `DATE`, uspoređivanjem tih dvaju polja možemo pratiti koliko kurirske službe kasne ili jesu li paket dostavile ranije nego što je planirano.
+
+```sql
+CREATE TABLE dostava (
+    dostava_id INT AUTO_INCREMENT PRIMARY KEY,
+    narudzba_id INT,
+    kurirska_sluzba VARCHAR(100),
+    broj_posiljke VARCHAR(50),
+    status_dostave VARCHAR(50),
+    procijenjeni_datum DATE,
+    stvarni_datum DATE,
+    FOREIGN KEY (narudzba_id) REFERENCES narudzba(narudzba_id)
+);
+```
+
+&nbsp;
+
+### 4.10 Relacija _nabava_
+
+Dok prethodne tablice prate prodaju prema kupcima, ova tablica pokriva drugu stranu, tj. kupovinu robe od dobavljača. **dobavljac_id** je strani ključ koji pokazuje od koga je roba naručena. **datum_nabave**, **status** i **ukupan_iznos** prate tijek i vrijednost cijele nabave.
+
+```sql
+CREATE TABLE nabava (
+    nabava_id INT AUTO_INCREMENT PRIMARY KEY,
+    dobavljac_id INT,
+    datum_nabave DATETIME,
+    status VARCHAR(50),
+    ukupan_iznos DECIMAL(12,2),
+    FOREIGN KEY (dobavljac_id) REFERENCES dobavljac(dobavljac_id)
+);
+```
+
+&nbsp;
+
+### 4.11 Relacija _stavka_nabave_
+
+Analogno stavkama narudžbe, ova tablica detaljizira što je točno nabavljeno u sklopu jedne nabave. **nabava_id** je strani ključ s `ON DELETE CASCADE`, tj. brisanjem nabave automatski se brišu i sve njene stavke. **proizvod_id** pokazuje koji je artikl nabavljen, **kolicina** koliko komada, a **nabavna_cijena** je cijena po komadu od dobavljača, koja se razlikuje od prodajne cijene.
+
+```sql
+CREATE TABLE stavka_nabave (
+    stavka_nabave_id INT AUTO_INCREMENT PRIMARY KEY,
+    nabava_id INT NOT NULL,
+    proizvod_id INT NOT NULL,
+    kolicina INT NOT NULL,
+    nabavna_cijena DECIMAL(10,2) NOT NULL,
+    FOREIGN KEY (nabava_id) REFERENCES nabava(nabava_id) ON DELETE CASCADE,
+    FOREIGN KEY (proizvod_id) REFERENCES proizvod(proizvod_id)
+);
+```
+
+&nbsp;
+
+### 4.12 Relacija _recenzija_
+
+Kupci mogu ocjenjivati proizvode koje su kupili. **kupac_id** i **proizvod_id** su strani ključevi definirani s `ON DELETE CASCADE`. **ocjena** je tipa `TINYINT` s ograničenjem `CHECK (ocjena BETWEEN 1 AND 5)`, dakle baza ne prihvaća vrijednosti izvan tog raspona. **komentar** je opcionalan tekst, a **datum_recenzije** se automatski popunjava. Posebno je vrijedno naglasiti složeno ograničenje `UNIQUE (kupac_id, proizvod_id)` koje sprječava da isti kupac ostavi više od jedne recenzije za isti proizvod.
+
+```sql
+CREATE TABLE recenzija (
+    recenzija_id INT AUTO_INCREMENT PRIMARY KEY,
+    kupac_id INT NOT NULL,
+    proizvod_id INT NOT NULL,
+    ocjena TINYINT CHECK (ocjena BETWEEN 1 AND 5),
+    komentar TEXT,
+    datum_recenzije DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (kupac_id) REFERENCES kupac(kupac_id) ON DELETE CASCADE,
+    FOREIGN KEY (proizvod_id) REFERENCES proizvod(proizvod_id) ON DELETE CASCADE,
+    UNIQUE (kupac_id, proizvod_id)
+);
+```
+
+&nbsp;
+
 ## 5. Popuna podacima (Luka Wrana)
 
 opis -Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 
 &nbsp;
 
-### 5.1 Popuna relacije *kategorija*
-
+### 5.1 Popuna relacije _kategorija_
 
 Popuna podataka u relaciji **kategorija** vrši se unosom više zapisa pomoću SQL naredbe `INSERT INTO`. U ovom primjeru unosi se početni skup kategorija proizvoda.
 
@@ -115,11 +319,11 @@ Popuna podataka u relaciji **kategorija** vrši se unosom više zapisa pomoću S
 
 U prikazanom primjeru uneseno je 6 kategorija:
 
-- **Tamna čokolada** – kategorija proizvoda s visokim udjelom kakaa  
-- **Mliječna čokolada** – kremaste čokolade s dodatkom mlijeka  
-- **Bijela čokolada** – slatke čokolade bez kakaa  
-- **Praline** – ručno izrađeni proizvodi punjeni kremama i likerima  
-- **Posebne ponude** – sezonski i ograničeni proizvodi  
+- **Tamna čokolada** – kategorija proizvoda s visokim udjelom kakaa
+- **Mliječna čokolada** – kremaste čokolade s dodatkom mlijeka
+- **Bijela čokolada** – slatke čokolade bez kakaa
+- **Praline** – ručno izrađeni proizvodi punjeni kremama i likerima
+- **Posebne ponude** – sezonski i ograničeni proizvodi
 - **Čokoladne figure** – dekorativni proizvodi od čokolade
 
 ```sql
@@ -134,7 +338,7 @@ INSERT INTO kategorija (kategorija_id, naziv, opis) VALUES
 
 &nbsp;
 
-### 5.2 Popuna relacije *dobavljac*
+### 5.2 Popuna relacije _dobavljac_
 
 Popuna podataka u relaciji **dobavljac** vrši se unosom više zapisa pomoću SQL naredbe `INSERT INTO`. Ova relacija sadrži informacije o dobavljačima čokolade i sirovina.
 
@@ -159,7 +363,7 @@ INSERT INTO dobavljac (dobavljac_id, naziv, kontakt_osoba, email, telefon, adres
 
 &nbsp;
 
-### 5.3 Popuna relacije *kupac*
+### 5.3 Popuna relacije _kupac_
 
 Popuna podataka u relaciji **kupac** vrši se unosom više zapisa pomoću SQL naredbe `INSERT INTO`. Ova relacija sadrži osnovne informacije o kupcima.
 
@@ -191,7 +395,7 @@ INSERT INTO kupac (kupac_id, ime, prezime, email, lozinka, telefon) VALUES
 
 &nbsp;
 
-### 5.4 Popuna relacije *adresa*
+### 5.4 Popuna relacije _adresa_
 
 ```sql
 INSERT INTO adresa (kupac_id, ulica, grad, postanski_broj, glavna_adresa) VALUES
@@ -214,7 +418,7 @@ INSERT INTO adresa (kupac_id, ulica, grad, postanski_broj, glavna_adresa) VALUES
 
 &nbsp;
 
-### 5.5 Popuna relacije *proizvod*
+### 5.5 Popuna relacije _proizvod_
 
 ```sql
 
@@ -237,7 +441,7 @@ BEGIN
     WHILE i <= 60 DO
 
         SET random_customer = FLOOR(1 + RAND() * 10);
-        
+
         SELECT adresa_id
         INTO random_address
         FROM adresa
@@ -294,11 +498,11 @@ SET n.ukupan_iznos = s.total;
 
 &nbsp;
 
-### 5.7 Popuna relacije *placanje*
+### 5.7 Popuna relacije _placanje_
 
 ```sql
 INSERT INTO placanje (narudzba_id, nacin_placanja, iznos, status_placanja, datum_placanja)
-SELECT 
+SELECT
     narudzba_id,
     ELT(FLOOR(1 + RAND()*3), 'Kartica', 'Pouzećem', 'PayPal'),
     ukupan_iznos,
@@ -309,7 +513,7 @@ FROM narudzba;
 
 &nbsp;
 
-### 5.9 Popuna relacije *dostava*
+### 5.9 Popuna relacije _dostava_
 
 ```sql
 INSERT INTO dostava (narudzba_id, kurirska_sluzba, broj_posiljke, status_dostave, procijenjeni_datum, stvarni_datum)
@@ -325,7 +529,7 @@ FROM narudzba;
 
 &nbsp;
 
-### 5.11 Popuna relacije *stavka_nabave*
+### 5.11 Popuna relacije _stavka_nabave_
 
 ```sql
 INSERT INTO stavka_nabave (nabava_id, proizvod_id, kolicina, nabavna_cijena)
@@ -340,8 +544,7 @@ VALUES
 
 &nbsp;
 
-
-### 5.11 Popuna relacije *recenzija*
+### 5.11 Popuna relacije _recenzija_
 
 ```sql
 INSERT INTO recenzija (kupac_id, proizvod_id, ocjena, komentar)
@@ -368,6 +571,7 @@ VALUES
 (10,15,5,'Espresso pun pogodak');
 
 ```
+
 &nbsp;
 
 ## 6. Upiti (Andrej Pucković i Danijel Margić)
@@ -381,7 +585,7 @@ opis -Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod te
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 
 ```sql
-SELECT 
+SELECT
     k.kupac_id,
     CONCAT(k.ime, ' ', k.prezime) AS kupac,
     k.email,
@@ -397,21 +601,18 @@ ORDER BY ukupno_potroseno DESC;
 
 &nbsp;
 
-
-
 ...
 ...
 ...
 ...
 ...
-
 
 ### 6.6 Upit: Prosječna ocjena i broj recenzija po proizvodu (Danijel Margić)
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 
 ```sql
-SELECT 
+SELECT
     p.proizvod_id,
     p.naziv,
     COUNT(r.recenzija_id) AS broj_recenzija,
@@ -425,7 +626,6 @@ ORDER BY prosjecna_ocjena DESC, broj_recenzija DESC;
 
 &nbsp;
 
-
 ## 7. Pogledi (Luka Wrana, Andrej Pucković, Danijel Margić)
 
 opis -Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
@@ -438,7 +638,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 
 ```sql
 CREATE OR REPLACE VIEW prihod_po_proizvodu AS
-SELECT 
+SELECT
     p.proizvod_id,
     p.naziv,
     SUM(sn.kolicina * sn.cijena_po_komadu) AS ukupni_prihod
@@ -465,7 +665,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 
 ```sql
 CREATE OR REPLACE VIEW AP_Pogled_aktivni_kupci AS
-SELECT 
+SELECT
     kupac_id,
     ime,
     prezime,
@@ -489,7 +689,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 
 ```sql
 CREATE OR REPLACE VIEW AP_Pogled_dostave_narudzbi AS
-SELECT 
+SELECT
     d.dostava_id,
     d.narudzba_id,
     d.kurirska_sluzba,
@@ -506,5 +706,3 @@ FROM dostava d;
 ...
 ...
 ...
-
-

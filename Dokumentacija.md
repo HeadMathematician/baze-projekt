@@ -35,7 +35,7 @@ Tema našeg projekta je sustav za upravljanje e-commerce trgovinom za prodaju č
   
 - **Izrada SQL upita i pogleda** – razvoj složenih SQL upita i VIEW pogleda za dohvat i analizu podataka iz baze.
   
-- **Implementacija trigger**a – automatizacija određenih procesa i održavanje konzistentnosti podataka unutar sustava.
+- **Implementacija triggera** – automatizacija određenih procesa i održavanje konzistentnosti podataka unutar sustava.
 
 Projekt je razvijan korištenjem više alata i tehnologija. Lucidchart je korišten za modeliranje ER dijagrama, MySQL Workbench za implementaciju baze i generiranje EER dijagrama, GitHub za verzioniranje i dijeljenje koda, a Discord za komunikaciju unutar tima. ChatGPT korišten je kao pomoć pri generiranju dijela testnih podataka.
 

@@ -16,15 +16,29 @@
 &nbsp;
 
 ## 1. Uvod (Luka Juroš)
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+
+U sklopu kolegija Baze podataka I zadatak projektnog rada bio je osmisliti, dizajnirati i implementirati relacijsku bazu podataka koja modelira stvarni poslovni proces koristeći znanja obrađena tijekom semestra. Projekt je obuhvaćao analizu problema, modeliranje podataka pomoću ER i EER dijagrama, implementaciju baze podataka u MySQL sustavu te izradu SQL upita, pogleda i dokumentacije.
   
+
 &nbsp;
 
+
 ## 2. Opis projekta (Luka Juroš)
-- Podjela projekta (napravi sarzaj)
-- Što je naša tema i objasniti koncept projekta
-- Za što se ova baza koristi i kakofuncionira
-- Features baze
+
+Tema našeg projekta je sustav za upravljanje e-commerce trgovinom za prodaju čokolada. Projekt je podijeljen u nekoliko glavnih faza razvoja baze podataka:
+
+- **Konceptualni dizajn baze podataka** – analiza poslovnog procesa te izrada ER i EER dijagrama pomoću Lucidchart-a i MySQL Workbench-a.
+  
+- **Implementacija relacija i tablica** – stvaranje relacija u MySQL sustavu korištenjem SQL skripti i naredbi CREATE TABLE uz definiranje primarnih i stranih ključeva.
+  
+- **Unos i generiranje podataka** – popunjavanje baze smislenim testnim podacima koji simuliraju stvarno poslovanje webshop sustava za prodaju čokolada.
+  
+- **Izrada SQL upita i pogleda** – razvoj složenih SQL upita i VIEW pogleda za dohvat i analizu podataka iz baze.
+  
+- **Implementacija trigger**a – automatizacija određenih procesa i održavanje konzistentnosti podataka unutar sustava.
+
+Projekt je razvijan korištenjem više alata i tehnologija. Lucidchart je korišten za modeliranje ER dijagrama, MySQL Workbench za implementaciju baze i generiranje EER dijagrama, GitHub za verzioniranje i dijeljenje koda, a Discord za komunikaciju unutar tima. ChatGPT korišten je kao pomoć pri generiranju dijela testnih podataka.
+
 
 &nbsp;
 
@@ -32,34 +46,98 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 
 #### 3.1 Definiranje poslovnog procesa (ER + EER Dijagram)
 
-- objasniti strukturu
-- zašto se koriste ER i EER? Što su? Kako funcioniraju? Kako se rade? 
+Konceptualni dizajn baze podataka predstavlja prvi i najvažniji korakau razvoju sustava baze podataka. U ovoj fazi definira se poslovni proces, identificiraju se svi važni entiteti te njihovi međusobni odnosi. Konceptuali dizaj je najvažniji korak jer definira strukturu cijelog projekta i svaki sljedeći korak ovisi o njemu. Za modeliranje sustava korišteni su ER (Entity Relationship) i EER (Enhanced Entity Relationship) dijagrami. ER dijagram omogućuje lakše razumijevanje strukture baze podataka prije same implementacije, dok EER dijagram daje detaljniji prikaz sustava koji je prikladan za implementaciju u relacijskim sustavima baza podataka poput MySQL-a.
 
 &nbsp;
 
 ### 3.2 Entity Relationship (ER) dijagram
 
-opis - Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+U nastavku je opisan ER dijagram sustava za upravljanje e-trgovinom. Dijagram prikazuje 12 entiteta i njihove međusobne veze s pripadajućim kardinalnostima. Svaka veza je opisana u kontekstu poslovnog procesa e-trgovine.
+
+Skup entiteta `KUPAC` povezan je sa skupom entiteta `ADRESA` vezom „ima", jedan naprema više (1:N), jer jedan kupac može imati više adresa (npr. adresu stanovanja i adresu za dostavu), dok se svaka adresa odnosi na točno jednog kupca.
+
+Skup entiteta `KUPAC` povezan je sa skupom entiteta `NARUDŽBA` vezom „kreira", jedan naprema više (1:N), jer jedan kupac može kreirati više narudžbi tijekom vremena, dok se svaka narudžba odnosi na točno jednog kupca koji ju je kreirao.
+
+Skup entiteta `KUPAC` povezan je sa skupom entiteta `RECENZIJA` vezom „piše", jedan naprema više (1:N), jer jedan kupac može napisati više recenzija za različite proizvode, dok svaku recenziju piše točno jedan kupac.
+
+Skup entiteta `KATEGORIJA` povezan je sa skupom entiteta `PROIZVOD` vezom „pripada", jedan naprema više (1:N), jer jedna kategorija može sadržavati više proizvoda, dok svaki proizvod pripada točno jednoj kategoriji.
+
+Skup entiteta `KATEGORIJA` povezan je sam sa sobom (rekurzivna veza) vezom „nadkategorija", jedan naprema više (1:N), jer jedna kategorija može biti nadkategorija za više podkategorija (npr. kategorija „Elektronika" sadrži podkategorije „Mobiteli", „Računala" i „Audio"), dok svaka podkategorija ima najviše jednu nadkategoriju. Kategorije na vrhu hijerarhije (korijenske kategorije) nemaju nadkategoriju.
+
+Skup entiteta `PROIZVOD` povezan je sa skupom entiteta `RECENZIJA` vezom „ocjenjuje", jedan naprema više (1:N), jer jedan proizvod može imati više recenzija od različitih kupaca, dok se svaka recenzija odnosi na točno jedan proizvod. Entitet `RECENZIJA` također predstavlja razrješenje više-naprema-više (M:N) veze između entiteta KUPAC i `PROIZVOD`, jer jedan kupac može ocijeniti više proizvoda, a jedan proizvod može biti ocijenjen od više kupaca.
+
+Skup entiteta `NARUDŽBA` povezan je sa skupom entiteta `STAVKA_NARUDŽBE` vezom „sadrži", jedan naprema više (1:N), jer jedna narudžba može sadržavati više stavki (različitih proizvoda), dok se svaka stavka narudžbe odnosi na točno jednu narudžbu.
+
+Skup entiteta `PROIZVOD` povezan je sa skupom entiteta `STAVKA_NARUDŽBE` vezom „u_stavci", jedan naprema više (1:N), jer jedan proizvod može biti stavka u više različitih narudžbi, dok se svaka stavka narudžbe odnosi na točno jedan proizvod. Entitet `STAVKA_NARUDŽBE` predstavlja razrješenje više-naprema-više (M:N) veze između entiteta NARUDŽBA i `PROIZVOD`, jer jedna narudžba može sadržavati više proizvoda, a jedan proizvod može se nalaziti u više narudžbi.
+
+Skup entiteta `NARUDŽBA` povezan je sa skupom entiteta `PLAĆANJE` vezom „placa_se", jedan naprema jedan (1:1), jer se svaka narudžba plaća točno jednim plaćanjem, dok se svako plaćanje odnosi na točno jednu narudžbu.
+
+Skup entiteta `NARUDŽBA` povezan je sa skupom entiteta `DOSTAVA` vezom „dostavlja_se", jedan naprema jedan (1:1), jer se svaka narudžba dostavlja točno jednom dostavom, dok se svaka dostava odnosi na točno jednu narudžbu.
+
+Skup entiteta `NARUDŽBA` povezan je sa skupom entiteta ADRESA vezom „na_adresu", više naprema jedan (N:1), jer se više narudžbi može dostaviti na istu adresu, dok se svaka narudžba dostavlja na točno jednu adresu kupca.
+
+Skup entiteta `DOBAVLJAČ` povezan je sa skupom entiteta `NABAVA` vezom „opskrbljuje", jedan naprema više (1:N), jer jedan dobavljač može isporučiti više nabavnih narudžbi, dok se svaka nabavna narudžba odnosi na točno jednog dobavljača.
+
+Skup entiteta `NABAVA` povezan je sa skupom entiteta `STAVKA_NABAVE` vezom „sadrži", jedan naprema više (1:N), jer jedna nabavna narudžba može sadržavati više stavki (različitih proizvoda), dok se svaka stavka nabave odnosi na točno jednu nabavnu narudžbu.
+
+Skup entiteta `PROIZVOD` povezan je sa skupom entiteta `STAVKA_NABAVE` vezom „nabavlja_se", jedan naprema više (1:N), jer se jedan proizvod može nabavljati više puta kroz različite nabavne narudžbe, dok se svaka stavka nabave odnosi na točno jedan proizvod. Entitet `STAVKA_NABAVE` predstavlja razrješenje više-naprema-više (M:N) veze između entiteta `NABAVA` i `PROIZVOD`, jer jedna nabavna narudžba može uključivati više proizvoda, a jedan proizvod može se nabavljati od više dobavljača kroz više nabavnih narudžbi.
+
+### Pregled kardinalnosti
+
+U sustavu su zastupljene sve osnovne vrste kardinalnosti:
+
+**Veze jedan naprema jedan (1:1):** NARUDŽBA ↔ PLAĆANJE, NARUDŽBA ↔ DOSTAVA
+
+**Veze jedan naprema više (1:N):** KUPAC → ADRESA, KUPAC → NARUDŽBA, KUPAC → RECENZIJA, KATEGORIJA → PROIZVOD, KATEGORIJA → KATEGORIJA (rekurzivna), DOBAVLJAČ → NABAVA, NARUDŽBA → STAVKA_NARUDŽBE, NABAVA → STAVKA_NABAVE
+
+**Razriješene veze više naprema više (M:N):** NARUDŽBA ↔ PROIZVOD (preko STAVKA_NARUDŽBE), NABAVA ↔ PROIZVOD (preko STAVKA_NABAVE), KUPAC ↔ PROIZVOD (preko RECENZIJA)
 
 ![Slika 1: ER dijagram](ER_dijagram.png)
 
+
+&nbsp;
+
+
 ### 3.3 Enhanced Entity–Relationship (EER) dijagram (MySQL Workbench)
 
-opis -Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+EER dijagram izrađen je pomoću alata MySQL Workbench te predstavlja detaljniju i tehnički precizniju verziju ER dijagrama. Dok ER dijagram služi za prikaz osnovnih entiteta i njihovih odnosa, EER dijagram prikazuje stvarnu strukturu baze podataka koja se koristi pri implementaciji u MySQL sustavu. U dijagramu su definirane sve relacije, atributi, primarni i strani ključevi te ograničenja integriteta podataka. Posebna pažnja posvećena je pravilnom povezivanju tablica i definiranju kardinalnosti odnosa između entiteta kako bi se osigurala konzistentnost podataka unutar sustava. EER dijagram također prikazuje pomoćne relacije poput `STAVKA_NARUDŽBE`, `STAVKA_NABAVE` i `RECENZIJA` koje služe za razrješavanje više naprema više (M:N) odnosa između glavnih entiteta baze podataka. Osim toga, prikazana je i hijerarhijska struktura kategorija pomoću samoreferencijalne veze unutar relacije `KATEGORIJA`.
+
 
 ![Slika 2: EER dijagram](EER_dijagram.png)
 
+
 &nbsp;
+
 
 ## 4. Relacije (Teo Kupčinovac)
 
- opis
+Nakon izrade konceptualnog i logičkog modela baze podataka slijedi implementacija relacija u MySQL sustavu. Relacije predstavljaju tablice u kojima se pohranjuju podaci o određenim entitetima poslovnog procesa. Svaka relacija sastoji se od atributa definiranih odgovarajućim tipovima podataka i ograničenjima. Prilikom izrade relacija korišten je SQL jezik i naredba `CREATE TABLE`. Svaka tablica definira vlastite atribute, primarne ključeve (`PRIMARY KEY`) i strane ključeve (`FOREIGN KEY`) koji omogućuju povezivanje podataka između različitih relacija. Primarni ključ služi za jedinstvenu identifikaciju svakog zapisa unutar tablice, dok strani ključ omogućuje povezivanje tablica i održavanje referencijalnog integriteta podataka. Osim toga, korištena su i dodatna ograničenja poput:
 
- - objasniti kako se stvaraju relacije u MySQL 
+- `NOT NULL` – atribut mora sadržavati vrijednost
+- `UNIQUE` – vrijednosti atributa moraju biti jedinstvene
+- `DEFAULT` – definira zadanu vrijednost atributa
+- `CHECK` – ograničava dozvoljene vrijednosti atributa
+- `AUTO_INCREMENT` – automatski povećava vrijednost primarnog ključa
+- `ON DELETE CASCADE` – automatski briše povezane zapise
   
+
 &nbsp;
 
+
 ### 4.1 Relacija kupac
+
+```sql
+CREATE TABLE kupac (
+    kupac_id INT AUTO_INCREMENT PRIMARY KEY,
+    ime VARCHAR(50) NOT NULL,
+    prezime VARCHAR(50) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    lozinka VARCHAR(255) NOT NULL,
+    telefon VARCHAR(20),
+    datum_registracije DATE,
+    aktivan BOOLEAN DEFAULT TRUE
+);
+```
 
 Prati osnovne podatke o kupcima u sustavu. Relacija **kupac** se sastoji od sljedećih atributa:
 
@@ -81,20 +159,234 @@ Prati osnovne podatke o kupcima u sustavu. Relacija **kupac** se sastoji od slje
 
 Ograničenje `NOT NULL` označava da atribut mora imati vrijednost, dok `UNIQUE` osigurava jedinstvenost podataka unutar tog atributa.
 
+
+&nbsp;
+
+
+### 4.2 Relacija adresa
+
 ```sql
-CREATE TABLE kupac (
-    kupac_id INT AUTO_INCREMENT PRIMARY KEY,
-    ime VARCHAR(50) NOT NULL,
-    prezime VARCHAR(50) NOT NULL,
-    email VARCHAR(100) NOT NULL UNIQUE,
-    lozinka VARCHAR(255) NOT NULL,
-    telefon VARCHAR(20),
-    datum_registracije DATE,
-    aktivan BOOLEAN DEFAULT TRUE
+CREATE TABLE adresa (
+    adresa_id INT AUTO_INCREMENT PRIMARY KEY,
+    kupac_id INT NOT NULL,
+    ulica VARCHAR(150) NOT NULL,
+    grad VARCHAR(100) NOT NULL,
+    postanski_broj VARCHAR(10) NOT NULL,
+    drzava VARCHAR(60) DEFAULT 'Hrvatska',
+    glavna_adresa BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (kupac_id) REFERENCES kupac(kupac_id) ON DELETE CASCADE
 );
 ```
 
+Kupac može imati više adresa za dostavu, primjerice kućnu i poslovnu. Primarni ključ je **adresa_id** koji se automatski povećava. **kupac_id** je strani ključ prema tablici _kupac_, s `ON DELETE CASCADE`, dakle brisanjem kupca automatski se brišu i sve njegove adrese. **ulica**, **grad** i **postanski_broj** su obavezni atributi tipa `VARCHAR`. Zanimljivo je da **postanski_broj** nije `INT` nego `VARCHAR`, zato jer neki poštanski brojevi počinju nulom. **drzava** ima zadanu vrijednost `'Hrvatska'` pa ju nije potrebno ručno unositi za svaki zapis. **glavna_adresa** je `BOOLEAN` koji označava je li ta adresa primarna za dostavu. Kupac može imati više adresa, ali samo jedna može biti glavna.
+
+
 &nbsp;
+
+
+### 4.3 Relacija dobavljac
+
+```sql
+CREATE TABLE dobavljac (
+    dobavljac_id INT AUTO_INCREMENT PRIMARY KEY,
+    naziv VARCHAR(150) NOT NULL,
+    kontakt_osoba VARCHAR(100),
+    email VARCHAR(100) NOT NULL UNIQUE,
+    telefon VARCHAR(20),
+    adresa VARCHAR(200)
+);
+```
+
+Pohranjuje kontaktne podatke tvrtki od kojih nabavljamo sirovine i gotove proizvode. **dobavljac_id** je primarni ključ s `AUTO_INCREMENT`. **naziv** je obavezan, dok su **kontakt_osoba**, **telefon** i **adresa** opcionalni jer ne mora svaka tvrtka imati specificiranog kontakta. **email** je obavezan i jedinstven (`NOT NULL` i `UNIQUE`). Ne mogu postojati dva dobavljača s istom email adresom.
+
+
+&nbsp;
+
+
+### 4.4 Relacija kategorija
+
+```sql
+CREATE TABLE kategorija (
+    kategorija_id INT AUTO_INCREMENT PRIMARY KEY,
+    nadkategorija_id INT,
+    naziv VARCHAR(100) NOT NULL,
+    opis TEXT,
+    FOREIGN KEY (nadkategorija_id) REFERENCES kategorija(kategorija_id)
+);
+```
+
+Grupira proizvode u logične cjeline kako bi pretraživanje u webshop-u bilo jednostavnije. Posebno je zanimljiv atribut **nadkategorija_id** strani ključ koji pokazuje na samu tablicu _kategorija_, tzv. samoreferencijalni odnos. Njime se postiže hijerarhija kategorija, primjerice "Mliječna čokolada" može biti podkategorija od "Čokolade". Ako je `NULL`, ta je kategorija na najvišoj razini. **naziv** je obavezan, **opis** je opcionalan.
+
+
+&nbsp;
+
+
+### 4.5 Relacija proizvod
+
+```sql
+CREATE TABLE proizvod (
+    proizvod_id INT AUTO_INCREMENT PRIMARY KEY,
+    kategorija_id INT NOT NULL,
+    naziv VARCHAR(150) NOT NULL,
+    opis TEXT,
+    cijena DECIMAL(10,2) NOT NULL,
+    kolicina_na_skladistu INT DEFAULT 0,
+    SKU VARCHAR(50) UNIQUE,
+    aktivan BOOLEAN DEFAULT TRUE,
+    datum_dodavanja DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (kategorija_id) REFERENCES kategorija(kategorija_id)
+);
+```
+
+Srž cijelog kataloga, svaki artikl koji prodajemo ima ovdje svoj zapis. **kategorija_id** je strani ključ koji ga smješta u odgovarajuću kategoriju. **cijena** je tipa `DECIMAL(10,2)` umjesto `FLOAT` jer se radi o novcu i bitna je preciznost na dvije decimale. **SKU** (Stock Keeping Unit) je interna šifra proizvoda koja mora biti jedinstvena (`UNIQUE`). **aktivan** je `BOOLEAN` koji omogućuje tkzv. meko brisanje, kad povučemo proizvod iz prodaje, ne brišemo ga iz baze nego ga samo označimo kao neaktivnog, čime čuvamo povijest. **datum_dodavanja** se automatski popunjava s `CURRENT_TIMESTAMP` pri unosu.
+
+
+&nbsp;
+
+
+### 4.6 Relacija narudzba
+
+```sql
+CREATE TABLE narudzba (
+    narudzba_id INT AUTO_INCREMENT PRIMARY KEY,
+    kupac_id INT NOT NULL,
+    adresa_id INT NOT NULL,
+    datum_narudzbe DATETIME,
+    status VARCHAR(50),
+    ukupan_iznos DECIMAL(12,2),
+    FOREIGN KEY (kupac_id) REFERENCES kupac(kupac_id),
+    FOREIGN KEY (adresa_id) REFERENCES adresa(adresa_id)
+);
+```
+
+Bilježi svaku kupovinu u webshop-u. Sadrži strane ključeve prema **kupac** i **adresa**. Pri naručivanju kupac odabire na koju od svojih adresa šalje paket. **datum_narudzbe** bilježi točan trenutak kreiranja narudžbe, **status** prati fazu obrade (npr. "U obradi", "Poslano", "Završena"), a **ukupan_iznos** tipa `DECIMAL(12,2)` predstavlja ukupnu vrijednost svih stavki te narudžbe.
+
+
+&nbsp;
+
+
+### 4.7 Relacija stavka_narudzbe
+
+```sql
+CREATE TABLE stavka_narudzbe (
+    stavka_id INT AUTO_INCREMENT PRIMARY KEY,
+    narudzba_id INT NOT NULL,
+    proizvod_id INT NOT NULL,
+    kolicina INT NOT NULL,
+    cijena_po_komadu DECIMAL(10,2) NOT NULL,
+    ukupna_cijena DECIMAL(12,2),
+    FOREIGN KEY (narudzba_id) REFERENCES narudzba(narudzba_id),
+    FOREIGN KEY (proizvod_id) REFERENCES proizvod(proizvod_id)
+);
+```
+
+Budući da jedna narudžba može sadržavati više različitih proizvoda, svaki redak u košarici postaje zasebna stavka. **narudzba_id** i **proizvod_id** su strani ključevi koji je vežu uz narudžbu i konkretni proizvod. **kolicina** je obavezna. **cijena_po_komadu** sprema se u trenutku narudžbe, a ne uzima se direktno iz tablice _proizvod_, to je namjerno, jer bi inače naknadna promjena cijene utjecala i na stare narudžbe. **ukupna_cijena** je umnožak količine i cijene po komadu.
+
+
+&nbsp;
+
+
+### 4.8 Relacija placanje
+
+```sql
+CREATE TABLE placanje (
+    placanje_id INT AUTO_INCREMENT PRIMARY KEY,
+    narudzba_id INT,
+    nacin_placanja VARCHAR(50),
+    iznos DECIMAL(12,2),
+    status_placanja VARCHAR(50),
+    datum_placanja DATETIME,
+    FOREIGN KEY (narudzba_id) REFERENCES narudzba(narudzba_id)
+);
+```
+
+Bilježi detalje transakcije za svaku narudžbu. **narudzba_id** je strani ključ prema narudžbi. **nacin_placanja** opisuje kako je kupac platio (npr. "Kartica", "PayPal", "Pouzećem"), **status_placanja** prati je li plaćanje uspješno, a **datum_placanja** bilježi točan trenutak kad je transakcija izvršena.
+
+
+&nbsp;
+
+
+### 4.9 Relacija dostava
+
+```sql
+CREATE TABLE dostava (
+    dostava_id INT AUTO_INCREMENT PRIMARY KEY,
+    narudzba_id INT,
+    kurirska_sluzba VARCHAR(100),
+    broj_posiljke VARCHAR(50),
+    status_dostave VARCHAR(50),
+    procijenjeni_datum DATE,
+    stvarni_datum DATE,
+    FOREIGN KEY (narudzba_id) REFERENCES narudzba(narudzba_id)
+);
+```
+
+Nakon što je narudžba plaćena, paket se predaje kurirskoj službi. **narudzba_id** veže dostavu uz narudžbu. **kurirska_sluzba** i **broj_posiljke** (tracking broj) daju kupcu mogućnost praćenja paketa. **procijenjeni_datum** i **stvarni_datum** su oba tipa `DATE`, uspoređivanjem tih dvaju polja možemo pratiti koliko kurirske službe kasne ili jesu li paket dostavile ranije nego što je planirano.
+
+
+&nbsp;
+
+
+### 4.10 Relacija nabava
+
+```sql
+CREATE TABLE nabava (
+    nabava_id INT AUTO_INCREMENT PRIMARY KEY,
+    dobavljac_id INT,
+    datum_nabave DATETIME,
+    status VARCHAR(50),
+    ukupan_iznos DECIMAL(12,2),
+    FOREIGN KEY (dobavljac_id) REFERENCES dobavljac(dobavljac_id)
+);
+```
+
+Dok prethodne tablice prate prodaju prema kupcima, ova tablica pokriva drugu stranu, tj. kupovinu robe od dobavljača. **dobavljac_id** je strani ključ koji pokazuje od koga je roba naručena. **datum_nabave**, **status** i **ukupan_iznos** prate tijek i vrijednost cijele nabave.
+
+
+&nbsp;
+
+
+### 4.11 Relacija stavka_nabave
+
+```sql
+CREATE TABLE stavka_nabave (
+    stavka_nabave_id INT AUTO_INCREMENT PRIMARY KEY,
+    nabava_id INT NOT NULL,
+    proizvod_id INT NOT NULL,
+    kolicina INT NOT NULL,
+    nabavna_cijena DECIMAL(10,2) NOT NULL,
+    FOREIGN KEY (nabava_id) REFERENCES nabava(nabava_id) ON DELETE CASCADE,
+    FOREIGN KEY (proizvod_id) REFERENCES proizvod(proizvod_id)
+);
+```
+
+Analogno stavkama narudžbe, ova tablica detaljizira što je točno nabavljeno u sklopu jedne nabave. **nabava_id** je strani ključ s `ON DELETE CASCADE`, tj. brisanjem nabave automatski se brišu i sve njene stavke. **proizvod_id** pokazuje koji je artikl nabavljen, **kolicina** koliko komada, a **nabavna_cijena** je cijena po komadu od dobavljača, koja se razlikuje od prodajne cijene.
+
+
+&nbsp;
+
+
+### 4.12 Relacija recenzija
+
+```sql
+CREATE TABLE recenzija (
+    recenzija_id INT AUTO_INCREMENT PRIMARY KEY,
+    kupac_id INT NOT NULL,
+    proizvod_id INT NOT NULL,
+    ocjena TINYINT CHECK (ocjena BETWEEN 1 AND 5),
+    komentar TEXT,
+    datum_recenzije DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (kupac_id) REFERENCES kupac(kupac_id) ON DELETE CASCADE,
+    FOREIGN KEY (proizvod_id) REFERENCES proizvod(proizvod_id) ON DELETE CASCADE,
+    UNIQUE (kupac_id, proizvod_id)
+);
+```
+
+Kupci mogu ocjenjivati proizvode koje su kupili. **kupac_id** i **proizvod_id** su strani ključevi definirani s `ON DELETE CASCADE`. **ocjena** je tipa `TINYINT` s ograničenjem `CHECK (ocjena BETWEEN 1 AND 5)`, dakle baza ne prihvaća vrijednosti izvan tog raspona. **komentar** je opcionalan tekst, a **datum_recenzije** se automatski popunjava. Posebno je vrijedno naglasiti složeno ograničenje `UNIQUE (kupac_id, proizvod_id)` koje sprječava da isti kupac ostavi više od jedne recenzije za isti proizvod.
+
+
+&nbsp;
+
 
 ## 5. Popuna podacima (Luka Wrana)
 
@@ -219,6 +511,10 @@ Popuna podataka u relaciji **kupac** vrši se unosom više zapisa pomoću SQL na
 - **lozinka** - predstavlja korisničku lozinku, mora biti jedinstven jer se koristi za prijavu u sustav 
 
 - **telefon** - služi za kontakt s kupcem, mora biti jedinstven
+  
+- **datum_registracije** - predstavlja datum registracije kupca u sustavu
+
+- **aktivan** - predstavlja informaciju o tome da li je kupac aktivan ili ne
 
 
 &nbsp;
@@ -227,7 +523,6 @@ Popuna podataka u relaciji **kupac** vrši se unosom više zapisa pomoću SQL na
 ### 5.4 Popuna relacije adresa
 
 ```sql
-INSERT INTO adresa (kupac_id, ulica, grad, postanski_broj, glavna_adresa) VALUES
 INSERT INTO adresa (adresa_id, kupac_id, ulica, grad, postanski_broj, drzava, glavna_adresa) VALUES
 (1, 1, 'Ilica 1', 'Zagreb', '10000', 'Hrvatska', 1),
 (2, 2, 'Korzo 5', 'Rijeka', '51000', 'Hrvatska', 1),
@@ -272,6 +567,8 @@ Svaka adresa povezana je s određenim kupcem pomoću stranog ključa `kupac_id`,
 
 Atributi u relaciji imaju sljedeću ulogu:
 
+- **adresa_id** - jedinstveni identifikator adrese
+
 - **kupac_id** - označava kojem kupcu pripada adresa
  
 - **ulica** - naziv ulice i kućni broj
@@ -279,6 +576,8 @@ Atributi u relaciji imaju sljedeću ulogu:
 - **grad** - grad stanovanja kupca
  
 - **postanski_broj** - poštanski broj grada
+
+- **drzava** - država stanovanja kupca
  
 - **glavna_adresa** - označava je li adresa glavna adresa kupca (`1`) ili dodatna adresa (`0`)
 
@@ -296,13 +595,11 @@ INSERT INTO proizvod (kategorija_id, naziv, opis, cijena, kolicina_na_skladistu,
 (2,'Mliječna čokolada s bademom','Hrskavi bademi u mliječnoj bazi',3.60,110,'ML4'),
 (2,'Mliječna kokos dream','Egzotični kokos u mliječnoj čokoladi',3.90,95,'ML5'),
 
-
 (1,'Tamna 70% kakao','Intenzivna gorka čokolada',3.20,120,'T1'),
 (1,'Tamna s narančom','Citrusna aroma naranče',3.40,100,'T2'),
 (1,'Tamna chili spice','Ljuta čokolada s chili paprikom',3.60,85,'T3'),
 (1,'Tamna mint fusion','Svježa menta i tamna čokolada',3.70,75,'T4'),
 (1,'Tamna espresso intense','Bogata aroma espresso kave',3.90,65,'T5'),
-
 
 (3,'Bijela vanilija','Kremasta vanilija čokolada',3.10,110,'B1'),
 (3,'Bijela s jagodom','Voćna jagoda u bijeloj čokoladi',3.30,95,'B2'),
@@ -310,20 +607,17 @@ INSERT INTO proizvod (kategorija_id, naziv, opis, cijena, kolicina_na_skladistu,
 (3,'Bijela limun cheesecake','Kombinacija limuna i keksa',3.60,85,'B4'),
 (3,'Bijela cookies cream','Keksići u kremastoj bijeloj čokoladi',3.70,80,'B5'),
 
-
 (4,'Praline rum','Punjenje s rum kremom',5.50,60,'P1'),
 (4,'Praline lješnjak krema','Bogata lješnjak krema',5.80,65,'P2'),
 (4,'Praline espresso','Kava + čokolada kombinacija',5.60,55,'P3'),
 (4,'Praline pistacija','Punjene pistacija kremom',6.10,50,'P4'),
 (4,'Praline caramel gold','Tekuća karamela u sredini',6.20,45,'P5'),
 
-
 (5,'Valentinovo box','Mix premium čokolada',12.90,40,'S1'),
 (5,'Božićna kolekcija','Sezonski paketić',14.90,35,'S2'),
 (5,'Gourmet tasting set','Degustacijski paket',19.90,25,'S3'),
 (5,'Uskrsna kolekcija','Tematski uskrsni paket',15.90,30,'S4'),
 (5,'Luxury gold edition','Ekskluzivna premium kolekcija',24.90,15,'S5'),
-
 
 (6,'Čokoladni zeko','Ručna figura zeca',6.50,50,'F1'),
 (6,'Čokoladni medvjedić','Dekorativni medvjedić',6.80,45,'F2'),
@@ -399,7 +693,7 @@ BEGIN
         INTO random_addresa
         FROM adresa
         WHERE kupac_id = random_kupac
-        ORDER BY RAND()
+        AND glavna_adresa = 1
         LIMIT 1;
 
         INSERT INTO narudzba (
@@ -418,10 +712,10 @@ BEGIN
         );
 
         SET id_narudzbe = LAST_INSERT_ID();
+        SET j = 1;
 
         WHILE j <= 3 DO
 
-            SET j = 1;
             SET random_proizvod = FLOOR(1 + RAND() * 30);
             SET random_kolicina = FLOOR(1 + RAND() * 3);
 
@@ -445,12 +739,12 @@ BEGIN
 
         END WHILE;
 
-        UPDATE narudzba n
-        SET n.ukupan_iznos = COALESCE((
+       UPDATE narudzba n
+        SET n.ukupan_iznos = (
             SELECT SUM(sn.ukupna_cijena)
             FROM stavka_narudzbe sn
             WHERE sn.narudzba_id = id_narudzbe
-        ), 0)
+        )
         WHERE n.narudzba_id = id_narudzbe;
 
         SET i = i + 1;
@@ -567,28 +861,28 @@ Ovim dijelom započinje glavna `WHILE` petlja koja izvršava sve naredbe između
 &nbsp;
 
 ```sql
-SET random_kupac = FLOOR(1 + RAND() * 10);
+SET random_kupac = FLOOR(1 + RAND() * 32);
 ```
 
 
-Pomoću naredbe `SET` dodjeljuje se vrijednost varijabli `random_kupac`. Ova naredba generira nasumičan broj između 1 i 10 te ga sprema u varijablu `random_kupac`. Dobiveni broj predstavlja ID nasumično odabranog kupca iz tablice kupac. Za generiranje nasumičnog broja koriste se funkcije:
+Pomoću naredbe `SET` dodjeljuje se vrijednost varijabli `random_kupac`. Ova naredba generira nasumičan broj između 1 i 32 te ga sprema u varijablu `random_kupac`. Dobiveni broj predstavlja ID nasumično odabranog kupca iz tablice kupac. Za generiranje nasumičnog broja koriste se funkcije:
 
 **RAND()** – generira slučajni decimalni broj između 0 i 1
 **FLOOR()** – uklanja decimalni dio broja i vraća cijeli broj
 
-Izraz `RAND() * 10` generira decimalni broj između 0 i 10 (npr. 8.47). Dodavanjem vrijednosti 1 raspon se pomiče na 1–11 (npr. 9.47), dok `FLOOR()` uklanja decimalni dio i vraća cijeli broj između 1 i 10 (npr. 9). 
+Izraz `RAND() * 32` generira decimalni broj između 0 i 32 (npr. 8.47). Dodavanjem vrijednosti 1 raspon se pomiče na 1–33 (npr. 9.47), dok `FLOOR()` uklanja decimalni dio i vraća cijeli broj između 1 i 32 (npr. 9). 
 
-Važno je napomenuti da ova procedura pretpostavlja da tablica `kupac` sadrži ID-eve u rasponu od 1 do 10. Kada bi u tablici postojali ID-evi izvan tog raspona, procedura jedino mogla dohvatiti prvih 10 kupaca.
+Važno je napomenuti da ova procedura pretpostavlja da tablica `kupac` sadrži ID-eve u rasponu od 1 do 32. Kada bi u tablici postojali ID-evi izvan tog raspona, procedura bi jedino mogla dohvatiti prvih 32 kupaca.
 
 
 &nbsp;
 
 ```sql
- SELECT adresa_id
+SELECT adresa_id
     INTO random_addresa
     FROM adresa
     WHERE kupac_id = random_kupac
-    ORDER BY RAND()
+    AND glavna_adresa = 1
     LIMIT 1;
 ```
 
@@ -600,6 +894,7 @@ Objašnjenje dijelova upita:
 - `INTO random_addresa` – sprema rezultat upita sprema u varijablu `random_addresa`
 - `FROM adresa` – određuje tablicu iz koje se dohvaćaju podaci
 - `WHERE kupac_id = random_kupac` – filtrira adrese koje pripadaju odabranom kupcu
+- `AND glavna_adresa = 1` – ovo je nadopuna WHERE filtriranju, filtira glavne adrese (1 => true)
 - `ORDER BY RAND()` – nasumično sortira rezultate
 - `LIMIT 1` – vraća samo jednu adresu
 
@@ -647,6 +942,7 @@ Vrijednost stupca `status` postavlja se na 'Završena' jer procedura simulira ve
 
 ```sql
 SET id_narudzbe = LAST_INSERT_ID();
+SET j = 1;
 
 WHILE j <= 3 DO
 
@@ -675,9 +971,9 @@ WHILE j <= 3 DO
 END WHILE;
 ```
 
-Nakon stvaranja narudžbe potrebno je generirati njezine stavke. ID posljednje umetnute narudžbe dohvaća se pomoću funkcije `LAST_INSERT_ID()` te se sprema u varijablu `id_narudzbe`. Unutarnjoj kontrolnoj varijabli `j` potrebno se dodatno dodijeliti vrijednost od 1 iako ona ima definiranu `DEFAULT` vrijednost od 1.
+Nakon stvaranja narudžbe potrebno je generirati njezine stavke. ID posljednje umetnute narudžbe dohvaća se pomoću funkcije `LAST_INSERT_ID()` te se sprema u varijablu `id_narudzbe`. Unutarnjoj kontrolnoj varijabli `j` potrebno je ponovno dodijeliti početnu vrijednost 1, iako ona već ima definiranu `DEFAULT` vrijednost. Razlog je dinamika u ponašanju ugniježđenih petlji. Unutarnja WHILE petlja `WHILE j <= 3 DO` koja generira stavke narudžbe izvršava se tri puta i nakon završetka te petlje, vrijednost varijable `j` ostaje 3. U sljedećoj iteraciji vanjske petlje `WHILE i <= 60 DO`, vrijednost `j` se ne resetira automatski, pa uvjet `j <= 3` više nije zadovoljen i unutarnja petlja se ne izvršava. Zbog toga je nužno resetirati brojač `j` na početnu vrijednost 1 prije svake nove iteracije unutarnje petlje.
 
-Na taj način svaki novi ciklus glavne petlje automatski započinje s početnom vrijednošću 1, bez potrebe za dodatnim resetiranjem unutar tijela petlje. Unutarnja `WHILE` petlja izvršava se tri puta te za svaku narudžbu generira tri stavke narudžbe (uvjet `j <= 3`). Tijekom svake iteracije generiraju se nasumični ID proizvoda i nasumična količina proizvoda. Varijabla `random_proizvod` dobiva vrijednost između 1 i 20, dok `random_kolicina` dobiva vrijednost između 1 i 3. Na taj način svaka narudžba dobiva tri stavke s različitim proizvodima i količinama.
+Tijekom svake iteracije unutarnje petlje `WHILE j <= 3 DO` generiraju se nasumični ID proizvoda i nasumična količina proizvoda. Varijabla `random_proizvod` dobiva vrijednost između 1 i 20, dok `random_kolicina` dobiva vrijednost između 1 i 3. Na taj način svaka narudžba dobiva tri stavke s različitim proizvodima i količinama.
 
 
 &nbsp;
@@ -723,11 +1019,11 @@ Na kraju petlje koristi se `SET j = j + 1` što povećava brojač unutarnje petl
 
 ```sql
 UPDATE narudzba n
-    SET n.ukupan_iznos = COALESCE((
+    SET n.ukupan_iznos = (
         SELECT SUM(sn.ukupna_cijena)
         FROM stavka_narudzbe sn
         WHERE sn.narudzba_id = id_narudzbe
-    ), 0)
+    )
     WHERE n.narudzba_id = id_narudzbe;
 
     SET i = i + 1;
@@ -827,16 +1123,24 @@ Kurirska služba bira se nasumično pomoću funkcije `ELT()`, dok se broj pošil
 ### 5.9 Popuna relacije nabava
 
 ```sql
-INSERT INTO nabava (dobavljac_id, datum_nabave, status, ukupan_iznos)
-VALUES
-(1, NOW() - INTERVAL 30 DAY, 'Zaprimljeno', 500),
-(2, NOW() - INTERVAL 20 DAY, 'Zaprimljeno', 700),
-(3, NOW() - INTERVAL 10 DAY, 'Zaprimljeno', 600);
+INSERT INTO nabava (nabava_id, dobavljac_id, datum_nabave, status, ukupan_iznos) VALUES
+(1, 1, '2026-04-01', 'Zaprimljeno', 629.80),
+(2, 2, '2026-04-03', 'Zaprimljeno', 517.00),
+(3, 3, '2026-04-05', 'Zaprimljeno', 1047.80),
+(4, 1, '2026-04-07', 'Zaprimljeno', 977.50),
+(5, 2, '2026-04-10', 'Zaprimljeno', 696.00),
+(6, 3, '2026-04-12', 'Zaprimljeno', 1131.00),
+(7, 1, '2026-04-15', 'Zaprimljeno', 888.30),
+(8, 2, '2026-04-18', 'Zaprimljeno', 884.00),
+(9, 3, '2026-04-20', 'Zaprimljeno', 610.50),
+(10, 1, '2026-04-22', 'Zaprimljeno', 1000.00);
 ```
 
 Relacija **nabava** sadrži podatke o nabavi proizvoda od dobavljača. Svaka nabava predstavlja jednu zaprimljenu pošiljku robe.
 
 Atributi relacije imaju sljedeću svrhu:
+
+- **nabava_id** - jedinstveni identifikator nabave
 
 - **dobavljac_id** - označava od kojeg dobavljača dolazi nabava
 
@@ -856,14 +1160,37 @@ Datumi nabave generirani su pomoću `NOW()` funkcije i vremenskih intervala kako
 ### 5.11 Popuna relacije stavka_nabave
 
 ```sql
-INSERT INTO stavka_nabave (nabava_id, proizvod_id, kolicina, nabavna_cijena)
-VALUES
-(1, 1, 100, 2.0),
-(1, 2, 80, 2.2),
-(2, 6, 120, 1.8),
-(2, 7, 90, 2.1),
-(3, 10, 70, 2.5),
-(3, 12, 60, 2.8);
+INSERT INTO stavka_nabave (nabava_id, proizvod_id, kolicina, nabavna_cijena) VALUES
+(1, 1, 100, 2.00),
+(1, 2, 80, 2.50),
+(1, 3, 60, 3.83),
+(2, 6, 90, 2.00),
+(2, 7, 70, 2.50),
+(2, 8, 70, 2.10),
+(3, 10, 110, 2.10),
+(3, 11, 85, 2.40),
+(3, 12, 75, 5.48),
+(4, 14, 95, 2.50),
+(4, 15, 65, 3.00),
+(4, 16, 55, 8.50),
+(5, 18, 100, 2.00),
+(5, 19, 80, 2.20),
+(5, 20, 80, 3.90),
+(6, 22, 120, 2.20),
+(6, 23, 90, 2.50),
+(6, 24, 75, 6.17),
+(7, 25, 110, 2.10),
+(7, 26, 85, 2.60),
+(7, 27, 70, 5.21),
+(8, 28, 100, 2.50),
+(8, 29, 80, 3.00),
+(8, 30, 90, 3.78),
+(9, 28, 90, 2.00),
+(9, 29, 70, 2.50),
+(9, 30, 90, 3.17),
+(10, 1, 100, 2.50),
+(10, 2, 80, 3.00),
+(10, 3, 85, 6.00);
 ```
 
 Relacija **stavka_nabave** predstavlja pojedinačne proizvode koji pripadaju određenoj nabavi. Ova relacija ostvaruje vezu između tablica `nabava` i `proizvod`.
@@ -929,6 +1256,8 @@ Relacija **recenzija** sadrži korisničke recenzije i ocjene proizvoda. Ova rel
 - **ocjena** - brojčana ocjena proizvoda
 
 - **komentar** - tekstualni komentar kupca
+
+- **datum_recenzije** - datum i vrijeme recenzije
 
 Prilikom popune korištene su različite ocjene i komentari kako bi podaci djelovali realističnije i omogućili kvalitetnije testiranje agregacijskih SQL funkcija poput `AVG()`, `COUNT()` i filtriranja recenzija po proizvodima.
 

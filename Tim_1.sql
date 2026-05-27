@@ -229,13 +229,11 @@ INSERT INTO proizvod (kategorija_id, naziv, opis, cijena, kolicina_na_skladistu,
 (2,'Mliječna čokolada s bademom','Hrskavi bademi u mliječnoj bazi',3.60,110,'ML4'),
 (2,'Mliječna kokos dream','Egzotični kokos u mliječnoj čokoladi',3.90,95,'ML5'),
 
-
 (1,'Tamna 70% kakao','Intenzivna gorka čokolada',3.20,120,'T1'),
 (1,'Tamna s narančom','Citrusna aroma naranče',3.40,100,'T2'),
 (1,'Tamna chili spice','Ljuta čokolada s chili paprikom',3.60,85,'T3'),
 (1,'Tamna mint fusion','Svježa menta i tamna čokolada',3.70,75,'T4'),
 (1,'Tamna espresso intense','Bogata aroma espresso kave',3.90,65,'T5'),
-
 
 (3,'Bijela vanilija','Kremasta vanilija čokolada',3.10,110,'B1'),
 (3,'Bijela s jagodom','Voćna jagoda u bijeloj čokoladi',3.30,95,'B2'),
@@ -243,20 +241,17 @@ INSERT INTO proizvod (kategorija_id, naziv, opis, cijena, kolicina_na_skladistu,
 (3,'Bijela limun cheesecake','Kombinacija limuna i keksa',3.60,85,'B4'),
 (3,'Bijela cookies cream','Keksići u kremastoj bijeloj čokoladi',3.70,80,'B5'),
 
-
 (4,'Praline rum','Punjenje s rum kremom',5.50,60,'P1'),
 (4,'Praline lješnjak krema','Bogata lješnjak krema',5.80,65,'P2'),
 (4,'Praline espresso','Kava + čokolada kombinacija',5.60,55,'P3'),
 (4,'Praline pistacija','Punjene pistacija kremom',6.10,50,'P4'),
 (4,'Praline caramel gold','Tekuća karamela u sredini',6.20,45,'P5'),
 
-
 (5,'Valentinovo box','Mix premium čokolada',12.90,40,'S1'),
 (5,'Božićna kolekcija','Sezonski paketić',14.90,35,'S2'),
 (5,'Gourmet tasting set','Degustacijski paket',19.90,25,'S3'),
 (5,'Uskrsna kolekcija','Tematski uskrsni paket',15.90,30,'S4'),
 (5,'Luxury gold edition','Ekskluzivna premium kolekcija',24.90,15,'S5'),
-
 
 (6,'Čokoladni zeko','Ručna figura zeca',6.50,50,'F1'),
 (6,'Čokoladni medvjedić','Dekorativni medvjedić',6.80,45,'F2'),
@@ -304,7 +299,7 @@ BEGIN
         );
 
         SET id_narudzbe = LAST_INSERT_ID();
-        SET j = 0;
+        SET j = 1;
 
         WHILE j <= 3 DO
 
@@ -332,11 +327,11 @@ BEGIN
         END WHILE;
 
         UPDATE narudzba n
-        SET n.ukupan_iznos = COALESCE((
+        SET n.ukupan_iznos = (
             SELECT SUM(sn.ukupna_cijena)
             FROM stavka_narudzbe sn
             WHERE sn.narudzba_id = id_narudzbe
-        ), 0)
+        )
         WHERE n.narudzba_id = id_narudzbe;
 
         SET i = i + 1;
@@ -345,7 +340,6 @@ BEGIN
 END $$
 
 DELIMITER ;
-
 
 CALL generiraj_narudzbe();
 
@@ -358,6 +352,7 @@ SELECT
     'Plaćeno',
     datum_narudzbe + INTERVAL FLOOR(RAND()*2) DAY
 FROM narudzba;
+
 
 INSERT INTO dostava (narudzba_id, kurirska_sluzba, broj_posiljke, status_dostave, procijenjeni_datum, stvarni_datum)
 SELECT
@@ -762,6 +757,7 @@ ORDER BY ukupno_prodanih_komada DESC;
 SELECT * FROM v_analiza_popularnosti_proizvoda 
 ORDER BY ukupno_prodanih_komada DESC;
 
+
 CREATE OR REPLACE VIEW v_javne_recenzije_proizvoda AS
 SELECT 
     r.recenzija_id,
@@ -772,12 +768,15 @@ SELECT
     r.datum_recenzije
 FROM recenzija r
 INNER JOIN proizvod p ON r.proizvod_id = p.proizvod_id
-INNER JOIN kupac k ON r.kupac_id = k.kupac_id
+INNER JOIN kupac k ON r.kupac_id = k.kupac_id;
+
 -- uz dodavanje uvjeta lako se izaberu recenzije sa odredjenom ocjenom
 -- WHERE r.ocjena = 1; 
 
 -- Pozivanje pogleda uz sortiranje po ocjenama uzlazno
-SELECT * FROM v_javne_recenzije_proizvoda 
+
+SELECT * 
+FROM v_javne_recenzije_proizvoda 
 ORDER BY ocjena ASC;
 
 CREATE OR REPLACE VIEW v_logistika_dostave_detalji AS

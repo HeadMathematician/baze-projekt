@@ -523,7 +523,7 @@ Popuna podataka u relaciji **kupac** vrši se unosom više zapisa pomoću SQL na
 ### 5.4 Popuna relacije adresa
 
 ```sql
-INSERT INTO adresa (adresa_id, kupac_id, ulica, grad, postanski_broj, drzava, glavna_adresa) VALUES
+INSERT INTO adresa (adresa_id, kupac_id, ulica_i_broj, grad, postanski_broj, drzava, glavna_adresa) VALUES
 (1, 1, 'Ilica 1', 'Zagreb', '10000', 'Hrvatska', 1),
 (2, 2, 'Korzo 5', 'Rijeka', '51000', 'Hrvatska', 1),
 (3, 3, 'Strossmayerova 3', 'Osijek', '31000', 'Hrvatska', 1),
@@ -557,8 +557,8 @@ INSERT INTO adresa (adresa_id, kupac_id, ulica, grad, postanski_broj, drzava, gl
 (31, 31, 'Nazorova 14', 'Koprivnica', '48000', 'Hrvatska', 1),
 (32, 32, 'Držićeva 8', 'Sisak', '44000', 'Hrvatska', 1),
 (33, 1, 'Savska cesta 55', 'Zagreb', '10000', 'Hrvatska', 0),
-(35, 5, 'Cvjetna 9', 'Velika Gorica', '10410', 'Hrvatska', 0),
-(37, 12, 'Splitska 44', 'Makarska', '21300', 'Hrvatska', 0);
+(34, 5, 'Cvjetna 9', 'Velika Gorica', '10410', 'Hrvatska', 0),
+(35, 12, 'Splitska 44', 'Makarska', '21300', 'Hrvatska', 0);
 ```
 
 Popuna podataka u relaciji **adresa** vrši se unosom više zapisa pomoću SQL naredbe `INSERT INTO`. Ova relacija sadrži adrese kupaca koje se koriste za dostavu narudžbi.
@@ -571,7 +571,7 @@ Atributi u relaciji imaju sljedeću ulogu:
 
 - **kupac_id** - označava kojem kupcu pripada adresa
  
-- **ulica** - naziv ulice i kućni broj
+- **ulica_i_broj** - naziv ulice i kućni broj
  
 - **grad** - grad stanovanja kupca
  
@@ -682,33 +682,23 @@ BEGIN
     DECLARE j INT DEFAULT 1;
     DECLARE random_kupac INT;
     DECLARE random_proizvod INT;
-    DECLARE random_addresa INT;
     DECLARE random_kolicina INT;
 
     WHILE i <= 60 DO
 
         SET random_kupac = FLOOR(1 + RAND() * 32);
-        
-        SELECT adresa_id
-        INTO random_addresa
-        FROM adresa
-        WHERE kupac_id = random_kupac
-        AND glavna_adresa = 1
-        LIMIT 1;
 
         INSERT INTO narudzba (
             kupac_id,
-            adresa_id,
             datum_narudzbe,
-            status,
-            ukupan_iznos
+            status_narudzbe,
+            cijena_dostave
         )
         VALUES (
             random_kupac,
-            random_addresa,
             DATE_SUB(NOW(), INTERVAL FLOOR(RAND()*60) DAY),
             'Završena',
-            0
+            ROUND(2 + (RAND() * 5), 2)
         );
 
         SET id_narudzbe = LAST_INSERT_ID();
@@ -719,33 +709,23 @@ BEGIN
             SET random_proizvod = FLOOR(1 + RAND() * 30);
             SET random_kolicina = FLOOR(1 + RAND() * 3);
 
-            INSERT INTO stavka_narudzbe (
+            INSERT IGNORE INTO stavka_narudzbe (
                 narudzba_id,
                 proizvod_id,
                 kolicina,
-                cijena_po_komadu,
-                ukupna_cijena
+                cijena_po_komadu
             )
             SELECT
                 id_narudzbe,
                 p.proizvod_id,
                 random_kolicina,
-                p.cijena,
-                p.cijena * random_kolicina
+                p.cijena
             FROM proizvod p
             WHERE p.proizvod_id = random_proizvod;
 
             SET j = j + 1;
 
         END WHILE;
-
-       UPDATE narudzba n
-        SET n.ukupan_iznos = (
-            SELECT SUM(sn.ukupna_cijena)
-            FROM stavka_narudzbe sn
-            WHERE sn.narudzba_id = id_narudzbe
-        )
-        WHERE n.narudzba_id = id_narudzbe;
 
         SET i = i + 1;
     END WHILE;
@@ -811,7 +791,6 @@ DECLARE i INT DEFAULT 1;
 DECLARE j INT DEFAULT 1;
 DECLARE random_kupac INT;
 DECLARE random_proizvod INT;
-DECLARE random_addresa INT;
 DECLARE random_kolicina INT;
 ```
 
@@ -839,8 +818,6 @@ U ovoj proceduri koriste se sljedeće varijable:
 - **random_kupac** - sprema nasumično odabrani ID kupca
 
 - **random_proizvod** - sprema nasumično odabrani ID proizvoda
-
-- **random_addresa** - sprema nasumično odabranu adresu kupca
 
 - **random_kolicina** - sprema nasumično generiranu količinu proizvoda
 
@@ -877,49 +854,23 @@ Važno je napomenuti da ova procedura pretpostavlja da tablica `kupac` sadrži I
 
 &nbsp;
 
-```sql
-SELECT adresa_id
-    INTO random_addresa
-    FROM adresa
-    WHERE kupac_id = random_kupac
-    AND glavna_adresa = 1
-    LIMIT 1;
-```
-
-Nakon što je generiran nasumični kupac, potrebno je dohvatiti jednu od njegovih adresa. Budući da tablica `adresa` već sadrži stupac `kupac_id`, nije potrebno nasumično generirati adresu. Umjesto toga, procedura dohvaća jednu adresu koja pripada prethodno odabranom kupcu pomoću jednostavnog upita.
-
-Objašnjenje dijelova upita:
-
-- `SELECT adresa_id` – dohvaća ID adrese iz tablice `adresa`
-- `INTO random_addresa` – sprema rezultat upita sprema u varijablu `random_addresa`
-- `FROM adresa` – određuje tablicu iz koje se dohvaćaju podaci
-- `WHERE kupac_id = random_kupac` – filtrira adrese koje pripadaju odabranom kupcu
-- `AND glavna_adresa = 1` – ovo je nadopuna WHERE filtriranju, filtira glavne adrese (1 => true)
-- `ORDER BY RAND()` – nasumično sortira rezultate
-- `LIMIT 1` – vraća samo jednu adresu
-
-
-&nbsp;
-
 
 ```sql
 INSERT INTO narudzba (
     kupac_id,
-    adresa_id,
     datum_narudzbe,
-    status,
-    ukupan_iznos
+    status_narudzbe,
+    cijena_dostave
 )
 VALUES (
     random_kupac,
-    random_addresa,
     DATE_SUB(NOW(), INTERVAL FLOOR(RAND()*60) DAY),
     'Završena',
-    0
+    ROUND(2 + (RAND() * 5), 2)
 );
 ```
 
-Nakon što su generirani `kupac` i `adresa`, moguće je umetnuti novu narudžbu u tablicu narudzba. Podaci se umeću pomoću naredbi `INSERT INTO` i `VALUES`. Za stupce `kupac_id` i `adresa_id` koriste se prethodno generirane vrijednosti `random_kupac` i `random_adresa`. Vrijednost stupca `datum_narudzbe` generira se pomoću izraza `DATE_SUB(NOW(), INTERVAL FLOOR(RAND()*60) DAY)` koji generira datum koji je između 0 i 60 dana udaljen od trenutnog datuma.
+Nakon što je generirani kupac, moguće je umetnuti novu narudžbu u tablicu `narudzba`. Podaci se umeću pomoću naredbi `INSERT INTO` i `VALUES`. Za stupce `kupac_id` koristi se prethodno generirana vrijednost `random_kupac`, a vrijednost stupca `datum_narudzbe` generira se pomoću izraza `DATE_SUB(NOW(), INTERVAL FLOOR(RAND()*60) DAY)` koji generira datum koji je između 0 i 60 dana udaljen od trenutnog datuma.
 
 &nbsp;
 
@@ -936,7 +887,7 @@ Objašnjenje izraza:
 
 &nbsp;
 
-Vrijednost stupca `status` postavlja se na 'Završena' jer procedura simulira već izvršene narudžbe, a vrijednost `ukupan_iznos` privremeno se postavlja na 0 zato što stavke narudžbe još nisu generirane pa ukupna cijena još nije poznata.
+Vrijednost stupca `status` postavlja se na 'Završena' jer procedura simulira već izvršene narudžbe, a vrijednost za `cijena_dostave` se generira pomoću izraza `ROUND(2 + (RAND() * 5), 2)`. U ovom slučaju, `2 + (RAND() * 5)` generira broj između 2 i 7 i pomoću funkcije `ROUND()` se taj broj zaokružuje na dvije decimale.
 
 &nbsp;
 
@@ -946,23 +897,20 @@ SET j = 1;
 
 WHILE j <= 3 DO
 
-    SET j = 1;
     SET random_proizvod = FLOOR(1 + RAND() * 30);
     SET random_kolicina = FLOOR(1 + RAND() * 3);
 
-    INSERT INTO stavka_narudzbe (
+    INSERT IGNORE INTO stavka_narudzbe (
         narudzba_id,
         proizvod_id,
         kolicina,
-        cijena_po_komadu,
-        ukupna_cijena
+        cijena_po_komadu
     )
     SELECT
         id_narudzbe,
         p.proizvod_id,
         random_kolicina,
-        p.cijena,
-        p.cijena * random_kolicina
+        p.cijena
     FROM proizvod p
     WHERE p.proizvod_id = random_proizvod;
 
@@ -973,32 +921,30 @@ END WHILE;
 
 Nakon stvaranja narudžbe potrebno je generirati njezine stavke. ID posljednje umetnute narudžbe dohvaća se pomoću funkcije `LAST_INSERT_ID()` te se sprema u varijablu `id_narudzbe`. Unutarnjoj kontrolnoj varijabli `j` potrebno je ponovno dodijeliti početnu vrijednost 1, iako ona već ima definiranu `DEFAULT` vrijednost. Razlog je dinamika u ponašanju ugniježđenih petlji. Unutarnja WHILE petlja `WHILE j <= 3 DO` koja generira stavke narudžbe izvršava se tri puta i nakon završetka te petlje, vrijednost varijable `j` ostaje 3. U sljedećoj iteraciji vanjske petlje `WHILE i <= 60 DO`, vrijednost `j` se ne resetira automatski, pa uvjet `j <= 3` više nije zadovoljen i unutarnja petlja se ne izvršava. Zbog toga je nužno resetirati brojač `j` na početnu vrijednost 1 prije svake nove iteracije unutarnje petlje.
 
-Tijekom svake iteracije unutarnje petlje `WHILE j <= 3 DO` generiraju se nasumični ID proizvoda i nasumična količina proizvoda. Varijabla `random_proizvod` dobiva vrijednost između 1 i 20, dok `random_kolicina` dobiva vrijednost između 1 i 3. Na taj način svaka narudžba dobiva tri stavke s različitim proizvodima i količinama.
+Tijekom svake iteracije unutarnje petlje `WHILE j <= 3 DO` generiraju se nasumični ID proizvoda i nasumična količina proizvoda. Varijabla `random_proizvod` dobiva vrijednost između 1 i 30, dok `random_kolicina` dobiva vrijednost između 1 i 3. Na taj način svaka narudžba dobiva tri stavke s različitim proizvodima i količinama.
 
 
 &nbsp;
  
 ```sql
-INSERT INTO stavka_narudzbe (
-        narudzba_id,
-        proizvod_id,
-        kolicina,
-        cijena_po_komadu,
-        ukupna_cijena
-    )
-    SELECT
-        id_narudzbe,
-        p.proizvod_id,
-        random_kolicina,
-        p.cijena,
-        p.cijena * random_kolicina
-    FROM proizvod p
-    WHERE p.proizvod_id = random_proizvod;
+INSERT IGNORE INTO stavka_narudzbe (
+    narudzba_id,
+    proizvod_id,
+    kolicina,
+    cijena_po_komadu
+)
+SELECT
+    id_narudzbe,
+    p.proizvod_id,
+    random_kolicina,
+    p.cijena
+FROM proizvod p
+WHERE p.proizvod_id = random_proizvod;
 ```
 
-Za razliku od prethodnih `INSERT` naredbi koje koriste `VALUES`, ovdje se koristi kombinacija `INSERT INTO ... SELECT`. Takav pristup omogućuje dohvaćanje podataka direktno iz druge tablice i njihovo umetanje u novu tablicu unutar iste naredbe. `INSERT INTO stavka_narudzbe` definira tablicu u koju će se umetnuti podaci, dok `SELECT` dio određuje koje će se vrijednosti umetnuti.
+Za razliku od prethodnih `INSERT` naredbi koje koriste `VALUES`, ovdje se koristi kombinacija `INSERT IGNORE INTO ... SELECT`. Takav pristup omogućuje dohvaćanje podataka direktno iz druge tablice i njihovo umetanje u novu tablicu unutar iste naredbe. `INSERT IGNORE INTO stavka_narudzbe` definira tablicu u koju će se umetnuti podaci, dok `SELECT` dio određuje koje će se vrijednosti umetnuti. Koirsti se `IGNORE` klauzula, kako se ne bi dohvatali podaci za proizvode koji su već dodani kao stvake narudžbe.
 
-U `FROM proizvod p` dijelu dohvaćaju se podaci iz tablice proizvod, pri čemu je p alias (skraćeni naziv) za tablicu proizvod. Alias služi za kraće i preglednije pisanje naziva stupaca, pa umjesto `proizvod.cijena` možemo pisati `p.cijena`. Uvjet `WHERE p.proizvod_id = random_proizvod` osigurava da se iz tablice proizvod dohvati točno taj proizvod čiji ID je jednak nasumično generiranom ID-u spremljenom u varijabli r`andom_proizvod`.
+U `FROM proizvod p` dijelu dohvaćaju se podaci iz tablice proizvod, pri čemu je p alias (skraćeni naziv) za tablicu proizvod. Alias služi za kraće i preglednije pisanje naziva stupaca, pa umjesto `proizvod.cijena` možemo pisati `p.cijena`. Uvjet `WHERE p.proizvod_id = random_proizvod` osigurava da se iz tablice proizvod dohvati točno taj proizvod čiji ID je jednak nasumično generiranom ID-u spremljenom u varijabli `random_proizvod`.
 
 Vrijednosti koje se umeću u tablicu `stavka_narudzbe` su:
 
@@ -1008,34 +954,16 @@ Vrijednosti koje se umeću u tablicu `stavka_narudzbe` su:
 | `p.proizvod_id`              | ID nasumično odabranog proizvoda               |
 | `random_kolicina`            | Nasumično generirana količina proizvoda        |
 | `p.cijena`                   | Stvarna cijena proizvoda iz tablice `proizvod` |
-| `p.cijena * random_kolicina` | Ukupne cijene stavke                   |
-
-&nbsp;
-
-Na kraju petlje koristi se `SET j = j + 1` što povećava brojač unutarnje petlje i omogućuje prelazak na generiranje sljedeće stavke narudžbe. Kada vrijednost `j` postane veća od 3, unutarnja WHILE petlja završava i procedura nastavlja s generiranjem sljedeće narudžbe.
 
 
 &nbsp;
 
-```sql
-UPDATE narudzba n
-    SET n.ukupan_iznos = (
-        SELECT SUM(sn.ukupna_cijena)
-        FROM stavka_narudzbe sn
-        WHERE sn.narudzba_id = id_narudzbe
-    )
-    WHERE n.narudzba_id = id_narudzbe;
 
-    SET i = i + 1;
-```
+Na kraju petlje koristi se `SET j = j + 1` što povećava brojač unutarnje petlje i omogućuje prelazak na generiranje sljedeće stavke narudžbe. Kada vrijednost `j` postane veća od 3, unutarnja `WHILE` petlja završava i procedura nastavlja s generiranjem sljedeće narudžbe.
 
-Nakon što su generirane sve stavke za jednu narudžbu, potrebno je izračunati ukupan iznos narudžbe. To se radi pomoću `UPDATE` naredbe koja ažurira stupac `ukupan_iznos` u tablici `narudzba`.
-
-Funkcija `SUM()` zbraja vrijednosti stupca `ukupna_cijena` za sve stavke koje pripadaju trenutno generiranoj narudžbi. Na taj način dobivamo ukupnu cijenu cijele narudžbe. `ukupna_cijena` se selektira od `stavka_narudzbe` koristeći `sn` kao alias i u naredbi `WHERE sn.narudzba_id = id_narudzbe` on osigurava da se zbrajaju samo stavke koje pripadaju trenutno obrađivanoj narudžbi.
-
-Nakon što se izračuna ukupna vrijednost, ona se sprema u stupac `ukupan_iznos` odgovarajuće narudžbe pomoću `WHERE n.narudzba_id = id_narudzbe`. Time smo stigli do kraja jedne iteracije while loop-a i vrijednost od `i` se poveća za 1.
 
 &nbsp;
+
 
 ```sql
 CALL generiraj_narudzbe();
@@ -1050,12 +978,11 @@ Nakon što je procedura definirana i spremljena u bazu podataka, može se pokren
 ### 5.7 Popuna relacije placanje
 
 ```sql
-INSERT INTO placanje (narudzba_id, nacin_placanja, iznos, status_placanja, datum_placanja)
+INSERT INTO placanje (narudzba_id, nacin_placanja, status_placanja, datum_placanja)
 SELECT 
     narudzba_id,
-    ELT(FLOOR(1 + RAND()*3), 'Kartica', 'Poduzećem', 'PayPal'),
-    ukupan_iznos,
-    'Plaćeno',
+    ELT(FLOOR(1 + RAND()*3), 'Kartica', 'Pouzećem', 'PayPal'),
+    'placeno',
     datum_narudzbe + INTERVAL FLOOR(RAND()*2) DAY
 FROM narudzba;
 ```
@@ -1068,8 +995,6 @@ Atributi relacije imaju sljedeću svrhu:
 
 - **nacin_placanja** - način kojim je kupac izvršio plaćanje
 
-- **iznos** - ukupni iznos plaćanja
-
 - **status_placanja** - status izvršenog plaćanja
 
 - **datum_placanja** - datum kada je plaćanje izvršeno
@@ -1080,7 +1005,7 @@ Za generiranje nasumičnog načina plaćanja koristi se funkcija:
 ELT(FLOOR(1 + RAND()*3), 'Kartica', 'Pouzećem', 'PayPal')
 ```
 
-Funkcija `RAND()` generira slučajni broj, dok `ELT()` na temelju tog broja odabire jednu od ponuđenih vrijednosti. Iznos plaćanja preuzima se direktno iz stupca `ukupan_iznos` relacije `narudzba`, čime se osigurava konzistentnost podataka između relacija. Datum plaćanja generira se dodavanjem 0–1 dana na datum narudžbe kako bi podaci realistično prikazivali proces online kupovine.
+Funkcija `RAND()` generira slučajni broj, dok `ELT()` na temelju tog broja odabire jednu od ponuđenih vrijednosti. Datum plaćanja generira se dodavanjem 0–1 dana na datum narudžbe kako bi podaci realistično prikazivali proces online kupovine.
 
 
 &nbsp;
@@ -1094,7 +1019,7 @@ SELECT
     narudzba_id,
     ELT(FLOOR(1 + RAND()*3), 'DHL', 'GLS', 'HP'),
     CONCAT('HR', FLOOR(100000 + RAND()*900000)),
-    'Dostavljeno',
+    'dostavljeno',
     DATE(datum_narudzbe + INTERVAL 3 DAY),
     DATE(datum_narudzbe + INTERVAL 2 + FLOOR(RAND()*2) DAY)
 FROM narudzba;
@@ -1123,17 +1048,17 @@ Kurirska služba bira se nasumično pomoću funkcije `ELT()`, dok se broj pošil
 ### 5.9 Popuna relacije nabava
 
 ```sql
-INSERT INTO nabava (nabava_id, dobavljac_id, datum_nabave, status, ukupan_iznos) VALUES
-(1, 1, '2026-04-01', 'Zaprimljeno', 629.80),
-(2, 2, '2026-04-03', 'Zaprimljeno', 517.00),
-(3, 3, '2026-04-05', 'Zaprimljeno', 1047.80),
-(4, 1, '2026-04-07', 'Zaprimljeno', 977.50),
-(5, 2, '2026-04-10', 'Zaprimljeno', 696.00),
-(6, 3, '2026-04-12', 'Zaprimljeno', 1131.00),
-(7, 1, '2026-04-15', 'Zaprimljeno', 888.30),
-(8, 2, '2026-04-18', 'Zaprimljeno', 884.00),
-(9, 3, '2026-04-20', 'Zaprimljeno', 610.50),
-(10, 1, '2026-04-22', 'Zaprimljeno', 1000.00);
+INSERT INTO nabava (nabava_id, dobavljac_id, datum_nabave, status_nabave) VALUES
+(1, 1, '2026-04-01', 'Zaprimljeno'),
+(2, 2, '2026-04-03', 'Zaprimljeno'),
+(3, 3, '2026-04-05', 'Zaprimljeno'),
+(4, 1, '2026-04-07', 'Zaprimljeno'),
+(5, 2, '2026-04-10', 'Zaprimljeno'),
+(6, 3, '2026-04-12', 'Zaprimljeno'),
+(7, 1, '2026-04-15', 'Zaprimljeno'),
+(8, 2, '2026-04-18', 'Zaprimljeno'),
+(9, 3, '2026-04-20', 'Zaprimljeno'),
+(10, 1, '2026-04-22', 'Zaprimljeno');
 ```
 
 Relacija **nabava** sadrži podatke o nabavi proizvoda od dobavljača. Svaka nabava predstavlja jednu zaprimljenu pošiljku robe.
@@ -1146,9 +1071,7 @@ Atributi relacije imaju sljedeću svrhu:
 
 - **datum_nabave** - datum kada je nabava izvršena
 
-- **status** - stanje nabave
-
-- **ukupan_iznos** - ukupna vrijednost nabave
+- **status_nabave** - stanje nabave
 
 
 Datumi nabave generirani su pomoću `NOW()` funkcije i vremenskih intervala kako bi podaci predstavljali nabave izvršene u prošlosti.
@@ -1554,10 +1477,14 @@ CREATE OR REPLACE VIEW prihod_po_proizvodu AS
 SELECT 
     p.proizvod_id,
     p.naziv,
+    COUNT(DISTINCT sn.narudzba_id) AS broj_narudzbi,
+    SUM(sn.kolicina) AS ukupno_prodano,
     SUM(sn.kolicina * sn.cijena_po_komadu) AS ukupni_prihod
 FROM proizvod p
-JOIN stavka_narudzbe sn ON p.proizvod_id = sn.proizvod_id
-JOIN narudzba n ON n.narudzba_id = sn.narudzba_id
+JOIN stavka_narudzbe sn 
+    ON p.proizvod_id = sn.proizvod_id
+JOIN narudzba n 
+    ON n.narudzba_id = sn.narudzba_id
 WHERE n.datum_narudzbe >= DATE_SUB(NOW(), INTERVAL 1 MONTH)
 GROUP BY p.proizvod_id, p.naziv;
 
@@ -1583,10 +1510,13 @@ CREATE OR REPLACE VIEW proizvodi_po_kolicini AS
 SELECT 
     p.proizvod_id,
     p.naziv,
+    COUNT(DISTINCT sn.narudzba_id) AS broj_narudzbi,
     SUM(sn.kolicina) AS ukupna_kolicina
 FROM proizvod p
-JOIN stavka_narudzbe sn ON p.proizvod_id = sn.proizvod_id
-JOIN narudzba n ON n.narudzba_id = sn.narudzba_id
+JOIN stavka_narudzbe sn 
+    ON p.proizvod_id = sn.proizvod_id
+JOIN narudzba n 
+    ON n.narudzba_id = sn.narudzba_id
 WHERE n.datum_narudzbe >= DATE_SUB(NOW(), INTERVAL 1 MONTH)
 GROUP BY p.proizvod_id, p.naziv;
 
@@ -1612,19 +1542,17 @@ CREATE OR REPLACE VIEW koeficijent_kolicine_po_proizvodu AS
 SELECT 
     p.proizvod_id,
     p.naziv,
-
     SUM(sn.kolicina) AS ukupna_kolicina,
-
     COUNT(DISTINCT n.narudzba_id) AS broj_narudzbi,
-
     CASE 
         WHEN COUNT(DISTINCT n.narudzba_id) = 0 THEN 0
         ELSE SUM(sn.kolicina) / COUNT(DISTINCT n.narudzba_id)
     END AS prosjecna_kolicina_po_narudzbi
-
 FROM proizvod p
-JOIN stavka_narudzbe sn ON p.proizvod_id = sn.proizvod_id
-JOIN narudzba n ON n.narudzba_id = sn.narudzba_id
+JOIN stavka_narudzbe sn 
+    ON p.proizvod_id = sn.proizvod_id
+JOIN narudzba n 
+    ON n.narudzba_id = sn.narudzba_id
 WHERE n.datum_narudzbe >= DATE_SUB(NOW(), INTERVAL 1 MONTH)
 GROUP BY p.proizvod_id, p.naziv;
 

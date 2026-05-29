@@ -1,6 +1,9 @@
 DROP DATABASE IF EXISTS ecommerce;
-CREATE DATABASE IF NOT EXISTS ecommerce;
+CREATE DATABASE ecommerce
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_croatian_ci;
 USE ecommerce;
+
 
 -- Teo Kupčinovac - Izrada tablica --
 CREATE TABLE kupac (
@@ -10,20 +13,22 @@ CREATE TABLE kupac (
     email VARCHAR(100) NOT NULL UNIQUE,
     lozinka VARCHAR(255) NOT NULL,
     telefon VARCHAR(20),
-    datum_registracije DATE,
-    aktivan BOOLEAN DEFAULT TRUE
+    datum_registracije DATE NOT NULL DEFAULT (CURRENT_DATE),
+    aktivan BOOLEAN NOT NULL DEFAULT TRUE
 );
+
 
 CREATE TABLE adresa (
     adresa_id INT AUTO_INCREMENT PRIMARY KEY,
     kupac_id INT NOT NULL,
-    ulica VARCHAR(150) NOT NULL,
-    grad VARCHAR(100) NOT NULL,
+    ulica_i_broj VARCHAR(100) NOT NULL,
+    grad VARCHAR(50) NOT NULL,
     postanski_broj VARCHAR(10) NOT NULL,
-    drzava VARCHAR(60) DEFAULT 'Hrvatska',
-    glavna_adresa BOOLEAN DEFAULT FALSE,
-    FOREIGN KEY (kupac_id) REFERENCES kupac(kupac_id) ON DELETE CASCADE
+    drzava VARCHAR(50) NOT NULL DEFAULT 'Hrvatska',
+    glavna_adresa BOOLEAN NOT NULL DEFAULT FALSE,
+    FOREIGN KEY (kupac_id) REFERENCES kupac(kupac_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
+
 
 CREATE TABLE dobavljac (
     dobavljac_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -34,99 +39,109 @@ CREATE TABLE dobavljac (
     adresa VARCHAR(200)
 );
 
+
 CREATE TABLE kategorija (
     kategorija_id INT AUTO_INCREMENT PRIMARY KEY,
-    nadkategorija_id INT,
     naziv VARCHAR(100) NOT NULL,
-    opis TEXT,
-    FOREIGN KEY (nadkategorija_id) REFERENCES kategorija(kategorija_id)
+    opis TEXT
 );
+
 
 CREATE TABLE proizvod (
     proizvod_id INT AUTO_INCREMENT PRIMARY KEY,
     kategorija_id INT NOT NULL,
     naziv VARCHAR(150) NOT NULL,
     opis TEXT,
-    cijena DECIMAL(10,2) NOT NULL,
-    kolicina_na_skladistu INT DEFAULT 0,
+    cijena DECIMAL(10,2) NOT NULL CHECK (cijena > 0),
+    kolicina_na_skladistu INT NOT NULL DEFAULT 0 CHECK (kolicina_na_skladistu >= 0),
     SKU VARCHAR(50) UNIQUE,
-    aktivan BOOLEAN DEFAULT TRUE,
-    datum_dodavanja DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (kategorija_id) REFERENCES kategorija(kategorija_id)
+    aktivan BOOLEAN NOT NULL DEFAULT TRUE,
+    datum_dodavanja DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (kategorija_id) REFERENCES kategorija(kategorija_id) ON DELETE RESTRICT ON UPDATE CASCADE
 );
+
 
 CREATE TABLE narudzba (
     narudzba_id INT AUTO_INCREMENT PRIMARY KEY,
     kupac_id INT NOT NULL,
-    adresa_id INT NOT NULL,
-    datum_narudzbe DATETIME,
-    status VARCHAR(50),
-    ukupan_iznos DECIMAL(12,2),
-    FOREIGN KEY (kupac_id) REFERENCES kupac(kupac_id),
-    FOREIGN KEY (adresa_id) REFERENCES adresa(adresa_id)
+    datum_narudzbe DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    status_narudzbe VARCHAR(50) NOT NULL DEFAULT 'na_cekanju',
+    cijena_dostave DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    FOREIGN KEY (kupac_id) REFERENCES kupac(kupac_id) ON DELETE CASCADE
 );
 
+
 CREATE TABLE stavka_narudzbe (
-    stavka_id INT AUTO_INCREMENT PRIMARY KEY,
+    stavka_narudzbe_id INT AUTO_INCREMENT PRIMARY KEY,
     narudzba_id INT NOT NULL,
     proizvod_id INT NOT NULL,
-    kolicina INT NOT NULL,
-    cijena_po_komadu DECIMAL(10,2) NOT NULL,
-    ukupna_cijena DECIMAL(12,2),
-    FOREIGN KEY (narudzba_id) REFERENCES narudzba(narudzba_id),
-    FOREIGN KEY (proizvod_id) REFERENCES proizvod(proizvod_id)
+    kolicina INT NOT NULL CHECK (kolicina > 0),
+    cijena_po_komadu DECIMAL(10,2) NOT NULL CHECK (cijena_po_komadu > 0),
+
+    UNIQUE (narudzba_id, proizvod_id),
+
+    FOREIGN KEY (narudzba_id) REFERENCES narudzba(narudzba_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (proizvod_id) REFERENCES proizvod(proizvod_id) ON DELETE RESTRICT ON UPDATE CASCADE
 );
+
 
 CREATE TABLE placanje (
     placanje_id INT AUTO_INCREMENT PRIMARY KEY,
-    narudzba_id INT,
-    nacin_placanja VARCHAR(50),
-    iznos DECIMAL(12,2),
-    status_placanja VARCHAR(50),
-    datum_placanja DATETIME,
-    FOREIGN KEY (narudzba_id) REFERENCES narudzba(narudzba_id)
+    narudzba_id INT NOT NULL UNIQUE,
+    nacin_placanja VARCHAR(50) NOT NULL,
+    status_placanja VARCHAR(50) NOT NULL DEFAULT 'u_obradi',
+    datum_placanja DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (narudzba_id) REFERENCES narudzba(narudzba_id) ON DELETE RESTRICT ON UPDATE CASCADE
 );
+
 
 CREATE TABLE dostava (
     dostava_id INT AUTO_INCREMENT PRIMARY KEY,
-    narudzba_id INT,
-    kurirska_sluzba VARCHAR(100),
+    narudzba_id INT NOT NULL UNIQUE,
+    kurirska_sluzba VARCHAR(100) NOT NULL,
     broj_posiljke VARCHAR(50),
-    status_dostave VARCHAR(50),
+    status_dostave VARCHAR(50) NOT NULL DEFAULT 'priprema',
     procijenjeni_datum DATE,
     stvarni_datum DATE,
-    FOREIGN KEY (narudzba_id) REFERENCES narudzba(narudzba_id)
+    FOREIGN KEY (narudzba_id) REFERENCES narudzba(narudzba_id) ON DELETE RESTRICT ON UPDATE CASCADE
 );
+
 
 CREATE TABLE nabava (
     nabava_id INT AUTO_INCREMENT PRIMARY KEY,
-    dobavljac_id INT,
-    datum_nabave DATETIME,
-    status VARCHAR(50),
-    ukupan_iznos DECIMAL(12,2),
-    FOREIGN KEY (dobavljac_id) REFERENCES dobavljac(dobavljac_id)
+    dobavljac_id INT NOT NULL,
+    datum_nabave DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    status_nabave VARCHAR(50) NOT NULL DEFAULT 'na_cekanju',
+    FOREIGN KEY (dobavljac_id) REFERENCES dobavljac(dobavljac_id) ON DELETE RESTRICT ON UPDATE CASCADE
 );
+
 
 CREATE TABLE stavka_nabave (
     stavka_nabave_id INT AUTO_INCREMENT PRIMARY KEY,
     nabava_id INT NOT NULL,
     proizvod_id INT NOT NULL,
     kolicina INT NOT NULL,
-    nabavna_cijena DECIMAL(10,2) NOT NULL,
-    FOREIGN KEY (nabava_id) REFERENCES nabava(nabava_id) ON DELETE CASCADE,
-    FOREIGN KEY (proizvod_id) REFERENCES proizvod(proizvod_id)
+    nabavna_cijena DECIMAL(10,2) NOT NULL CHECK (nabavna_cijena > 0),
+
+    UNIQUE (nabava_id, proizvod_id),
+
+    FOREIGN KEY (nabava_id) REFERENCES nabava(nabava_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (proizvod_id) REFERENCES proizvod(proizvod_id) ON DELETE RESTRICT ON UPDATE CASCADE
 );
+
 
 CREATE TABLE recenzija (
     recenzija_id INT AUTO_INCREMENT PRIMARY KEY,
     kupac_id INT NOT NULL,
     proizvod_id INT NOT NULL,
-    ocjena TINYINT CHECK (ocjena BETWEEN 1 AND 5),
+    ocjena TINYINT NOT NULL CHECK (ocjena BETWEEN 1 AND 5),
     komentar TEXT,
-    datum_recenzije DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (kupac_id) REFERENCES kupac(kupac_id) ON DELETE CASCADE,
-    FOREIGN KEY (proizvod_id) REFERENCES proizvod(proizvod_id) ON DELETE CASCADE,
-    UNIQUE (kupac_id, proizvod_id)
+    datum_recenzije DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    UNIQUE (kupac_id, proizvod_id),
+
+    FOREIGN KEY (kupac_id) REFERENCES kupac(kupac_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    FOREIGN KEY (proizvod_id) REFERENCES proizvod(proizvod_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 
@@ -139,6 +154,7 @@ INSERT INTO kategorija (kategorija_id, naziv, opis) VALUES
 (4, 'Praline', 'Ručno rađene praline punjene kremama i likerima'),
 (5, 'Posebne ponude', 'Sezonske i limitirane kolekcije'),
 (6, 'Čokoladne figure', 'Dekorativne figure od čokolade');
+
 
 
 INSERT INTO dobavljac (dobavljac_id, naziv, kontakt_osoba, email, telefon, adresa) VALUES
@@ -182,8 +198,7 @@ INSERT INTO kupac (kupac_id, ime, prezime, email, lozinka, telefon, datum_regist
 (32, 'Helena', 'Matić', 'helena.matic@gmail.com', 'hash_pass_32', '0953339900', '2026-04-05', 1);
 
 
-
-INSERT INTO adresa (adresa_id, kupac_id, ulica, grad, postanski_broj, drzava, glavna_adresa) VALUES
+INSERT INTO adresa (adresa_id, kupac_id, ulica_i_broj, grad, postanski_broj, drzava, glavna_adresa) VALUES
 (1, 1, 'Ilica 1', 'Zagreb', '10000', 'Hrvatska', 1),
 (2, 2, 'Korzo 5', 'Rijeka', '51000', 'Hrvatska', 1),
 (3, 3, 'Strossmayerova 3', 'Osijek', '31000', 'Hrvatska', 1),
@@ -217,9 +232,8 @@ INSERT INTO adresa (adresa_id, kupac_id, ulica, grad, postanski_broj, drzava, gl
 (31, 31, 'Nazorova 14', 'Koprivnica', '48000', 'Hrvatska', 1),
 (32, 32, 'Držićeva 8', 'Sisak', '44000', 'Hrvatska', 1),
 (33, 1, 'Savska cesta 55', 'Zagreb', '10000', 'Hrvatska', 0),
-(35, 5, 'Cvjetna 9', 'Velika Gorica', '10410', 'Hrvatska', 0),
-(37, 12, 'Splitska 44', 'Makarska', '21300', 'Hrvatska', 0);
-
+(34, 5, 'Cvjetna 9', 'Velika Gorica', '10410', 'Hrvatska', 0),
+(35, 12, 'Splitska 44', 'Makarska', '21300', 'Hrvatska', 0);
 
 
 INSERT INTO proizvod (kategorija_id, naziv, opis, cijena, kolicina_na_skladistu, SKU) VALUES
@@ -269,33 +283,23 @@ BEGIN
     DECLARE j INT DEFAULT 1;
     DECLARE random_kupac INT;
     DECLARE random_proizvod INT;
-    DECLARE random_addresa INT;
     DECLARE random_kolicina INT;
 
     WHILE i <= 60 DO
 
         SET random_kupac = FLOOR(1 + RAND() * 32);
-        
-        SELECT adresa_id
-        INTO random_addresa
-        FROM adresa
-        WHERE kupac_id = random_kupac
-        AND glavna_adresa = 1
-        LIMIT 1;
 
         INSERT INTO narudzba (
             kupac_id,
-            adresa_id,
             datum_narudzbe,
-            status,
-            ukupan_iznos
+            status_narudzbe,
+            cijena_dostave
         )
         VALUES (
             random_kupac,
-            random_addresa,
             DATE_SUB(NOW(), INTERVAL FLOOR(RAND()*60) DAY),
             'Završena',
-            0
+            ROUND(2 + (RAND() * 5), 2)
         );
 
         SET id_narudzbe = LAST_INSERT_ID();
@@ -306,33 +310,23 @@ BEGIN
             SET random_proizvod = FLOOR(1 + RAND() * 30);
             SET random_kolicina = FLOOR(1 + RAND() * 3);
 
-            INSERT INTO stavka_narudzbe (
+            INSERT IGNORE INTO stavka_narudzbe (
                 narudzba_id,
                 proizvod_id,
                 kolicina,
-                cijena_po_komadu,
-                ukupna_cijena
+                cijena_po_komadu
             )
             SELECT
                 id_narudzbe,
                 p.proizvod_id,
                 random_kolicina,
-                p.cijena,
-                p.cijena * random_kolicina
+                p.cijena
             FROM proizvod p
             WHERE p.proizvod_id = random_proizvod;
 
             SET j = j + 1;
 
         END WHILE;
-
-        UPDATE narudzba n
-        SET n.ukupan_iznos = (
-            SELECT SUM(sn.ukupna_cijena)
-            FROM stavka_narudzbe sn
-            WHERE sn.narudzba_id = id_narudzbe
-        )
-        WHERE n.narudzba_id = id_narudzbe;
 
         SET i = i + 1;
     END WHILE;
@@ -344,12 +338,11 @@ DELIMITER ;
 CALL generiraj_narudzbe();
 
 
-INSERT INTO placanje (narudzba_id, nacin_placanja, iznos, status_placanja, datum_placanja)
+INSERT INTO placanje (narudzba_id, nacin_placanja, status_placanja, datum_placanja)
 SELECT 
     narudzba_id,
-    ELT(FLOOR(1 + RAND()*3), 'Kartica', 'Poduzećem', 'PayPal'),
-    ukupan_iznos,
-    'Plaćeno',
+    ELT(FLOOR(1 + RAND()*3), 'Kartica', 'Pouzećem', 'PayPal'),
+    'placeno',
     datum_narudzbe + INTERVAL FLOOR(RAND()*2) DAY
 FROM narudzba;
 
@@ -359,23 +352,24 @@ SELECT
     narudzba_id,
     ELT(FLOOR(1 + RAND()*3), 'DHL', 'GLS', 'HP'),
     CONCAT('HR', FLOOR(100000 + RAND()*900000)),
-    'Dostavljeno',
+    'dostavljeno',
     DATE(datum_narudzbe + INTERVAL 3 DAY),
     DATE(datum_narudzbe + INTERVAL 2 + FLOOR(RAND()*2) DAY)
 FROM narudzba;
 
 
-INSERT INTO nabava (nabava_id, dobavljac_id, datum_nabave, status, ukupan_iznos) VALUES
-(1, 1, '2026-04-01', 'Zaprimljeno', 629.80),
-(2, 2, '2026-04-03', 'Zaprimljeno', 517.00),
-(3, 3, '2026-04-05', 'Zaprimljeno', 1047.80),
-(4, 1, '2026-04-07', 'Zaprimljeno', 977.50),
-(5, 2, '2026-04-10', 'Zaprimljeno', 696.00),
-(6, 3, '2026-04-12', 'Zaprimljeno', 1131.00),
-(7, 1, '2026-04-15', 'Zaprimljeno', 888.30),
-(8, 2, '2026-04-18', 'Zaprimljeno', 884.00),
-(9, 3, '2026-04-20', 'Zaprimljeno', 610.50),
-(10, 1, '2026-04-22', 'Zaprimljeno', 1000.00);
+INSERT INTO nabava (nabava_id, dobavljac_id, datum_nabave, status_nabave) VALUES
+(1, 1, '2026-04-01', 'Zaprimljeno'),
+(2, 2, '2026-04-03', 'Zaprimljeno'),
+(3, 3, '2026-04-05', 'Zaprimljeno'),
+(4, 1, '2026-04-07', 'Zaprimljeno'),
+(5, 2, '2026-04-10', 'Zaprimljeno'),
+(6, 3, '2026-04-12', 'Zaprimljeno'),
+(7, 1, '2026-04-15', 'Zaprimljeno'),
+(8, 2, '2026-04-18', 'Zaprimljeno'),
+(9, 3, '2026-04-20', 'Zaprimljeno'),
+(10, 1, '2026-04-22', 'Zaprimljeno');
+
 
 INSERT INTO stavka_nabave (nabava_id, proizvod_id, kolicina, nabavna_cijena) VALUES
 (1, 1, 100, 2.00),
@@ -449,10 +443,14 @@ CREATE OR REPLACE VIEW prihod_po_proizvodu AS
 SELECT 
     p.proizvod_id,
     p.naziv,
-    SUM(sn.kolicina * sn.cijena_po_komadu) AS ukupni_prihod
+    SUM(sn.kolicina * sn.cijena_po_komadu) AS ukupni_prihod,
+    SUM(sn.kolicina) AS ukupno_prodano,
+    COUNT(DISTINCT sn.narudzba_id) AS broj_narudzbi
 FROM proizvod p
-JOIN stavka_narudzbe sn ON p.proizvod_id = sn.proizvod_id
-JOIN narudzba n ON n.narudzba_id = sn.narudzba_id
+JOIN stavka_narudzbe sn 
+    ON p.proizvod_id = sn.proizvod_id
+JOIN narudzba n 
+    ON n.narudzba_id = sn.narudzba_id
 WHERE n.datum_narudzbe >= DATE_SUB(NOW(), INTERVAL 1 MONTH)
 GROUP BY p.proizvod_id, p.naziv;
 
@@ -465,10 +463,13 @@ CREATE OR REPLACE VIEW proizvodi_po_kolicini AS
 SELECT 
     p.proizvod_id,
     p.naziv,
-    SUM(sn.kolicina) AS ukupna_kolicina
+    SUM(sn.kolicina) AS ukupna_kolicina,
+    COUNT(DISTINCT sn.narudzba_id) AS broj_narudzbi
 FROM proizvod p
-JOIN stavka_narudzbe sn ON p.proizvod_id = sn.proizvod_id
-JOIN narudzba n ON n.narudzba_id = sn.narudzba_id
+JOIN stavka_narudzbe sn 
+    ON p.proizvod_id = sn.proizvod_id
+JOIN narudzba n 
+    ON n.narudzba_id = sn.narudzba_id
 WHERE n.datum_narudzbe >= DATE_SUB(NOW(), INTERVAL 1 MONTH)
 GROUP BY p.proizvod_id, p.naziv;
 
@@ -481,19 +482,17 @@ CREATE OR REPLACE VIEW koeficijent_kolicine_po_proizvodu AS
 SELECT 
     p.proizvod_id,
     p.naziv,
-
     SUM(sn.kolicina) AS ukupna_kolicina,
-
     COUNT(DISTINCT n.narudzba_id) AS broj_narudzbi,
-
     CASE 
         WHEN COUNT(DISTINCT n.narudzba_id) = 0 THEN 0
         ELSE SUM(sn.kolicina) / COUNT(DISTINCT n.narudzba_id)
     END AS prosjecna_kolicina_po_narudzbi
-
 FROM proizvod p
-JOIN stavka_narudzbe sn ON p.proizvod_id = sn.proizvod_id
-JOIN narudzba n ON n.narudzba_id = sn.narudzba_id
+JOIN stavka_narudzbe sn 
+    ON p.proizvod_id = sn.proizvod_id
+JOIN narudzba n 
+    ON n.narudzba_id = sn.narudzba_id
 WHERE n.datum_narudzbe >= DATE_SUB(NOW(), INTERVAL 1 MONTH)
 GROUP BY p.proizvod_id, p.naziv;
 
@@ -608,7 +607,7 @@ SELECT
     n.narudzba_id,
     CONCAT(k.ime, ' ', k.prezime) AS kupac,
     n.datum_narudzbe,
-    n.status,
+    n.status_narudzbe,
     n.ukupan_iznos,
     a.grad,
     a.ulica
@@ -619,7 +618,7 @@ JOIN adresa a ON n.adresa_id = a.adresa_id;
 -- Pogled 4: Stavke narudžbi
 CREATE VIEW AP_Pogled_stavke_narudzbe AS
 SELECT 
-    sn.stavka_id,
+    sn.stavka_narudzbe_id,
     sn.narudzba_id,
     p.naziv AS proizvod,
     sn.kolicina,
@@ -640,7 +639,7 @@ SELECT
     p.iznos,
     p.status_placanja,
     p.datum_placanja,
-    n.status AS status_narudzbe
+    n.status_narudzbe AS status_narudzbe
 FROM placanje p
 JOIN narudzba n ON p.narudzba_id = n.narudzba_id
 JOIN kupac k ON n.kupac_id = k.kupac_id;

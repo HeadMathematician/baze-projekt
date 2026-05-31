@@ -81,9 +81,9 @@ Prati osnovne podatke o kupcima u sustavu. Relacija **kupac** se sastoji od slje
 
 - **telefon** – podatak tipa `VARCHAR` ograničen na 20 znakova. Nema `NOT NULL` ograničenje, što znači da je unos opcionalan.
 
-- **datum_registracije** – podatak tipa `DATE`. Predstavlja datum registracije kupca i također je opcionalan (može biti `NULL` ako nije zadano).
+- **datum_registracije** – podatak tipa `DATE` s ograničenjem `NOT NULL` i zadanom vrijednošću `DEFAULT (CURRENT_DATE)`. Automatski se popunjava s datumom kreiranja korisničkog računa.
 
-- **aktivan** – podatak tipa `BOOLEAN`. Ima zadanu vrijednost (`DEFAULT TRUE`), što znači da će novi kupac automatski biti označen kao aktivan ako se ne navede drugačije.
+- **aktivan** – podatak tipa `BOOLEAN` s ograničenjem `NOT NULL`. Ima zadanu vrijednost (`DEFAULT TRUE`), što znači da će novi kupac automatski biti označen kao aktivan ako se ne navede drugačije.
 
 Ograničenje `NOT NULL` označava da atribut mora imati vrijednost, dok `UNIQUE` osigurava jedinstvenost podataka unutar tog atributa.
 
@@ -95,28 +95,27 @@ CREATE TABLE kupac (
     email VARCHAR(100) NOT NULL UNIQUE,
     lozinka VARCHAR(255) NOT NULL,
     telefon VARCHAR(20),
-    datum_registracije DATE,
-    aktivan BOOLEAN DEFAULT TRUE
+    datum_registracije DATE NOT NULL DEFAULT (CURRENT_DATE),
+    aktivan BOOLEAN NOT NULL DEFAULT TRUE
 );
-
 ```
 
 &nbsp;
 
 ### 4.2 Relacija _adresa_
 
-Kupac može imati više adresa za dostavu, primjerice kućnu i poslovnu. Primarni ključ je **adresa_id** koji se automatski povećava. **kupac_id** je strani ključ prema tablici _kupac_, s `ON DELETE CASCADE`, dakle brisanjem kupca automatski se brišu i sve njegove adrese. **ulica**, **grad** i **postanski_broj** su obavezni atributi tipa `VARCHAR`. Zanimljivo je da **postanski_broj** nije `INT` nego `VARCHAR`, zato jer neki poštanski brojevi počinju nulom. **drzava** ima zadanu vrijednost `'Hrvatska'` pa ju nije potrebno ručno unositi za svaki zapis. **glavna_adresa** je `BOOLEAN` koji označava je li ta adresa primarna za dostavu. Kupac može imati više adresa, ali samo jedna može biti glavna.
+Kupac može imati više adresa za dostavu, primjerice kućnu i poslovnu. Primarni ključ je **adresa_id** koji se automatski povećava. **kupac_id** je strani ključ prema tablici _kupac_, s `ON DELETE CASCADE ON UPDATE CASCADE`, dakle brisanjem ili izmjenom kupca automatski se mijenjaju i sve njegove adrese. **ulica_i_broj**, **grad** i **postanski_broj** su obavezni atributi tipa `VARCHAR`. Zanimljivo je da **postanski_broj** nije `INT` nego `VARCHAR`, zato jer neki poštanski brojevi počinju nulom. **drzava** ima ograničenje `NOT NULL` i zadanu vrijednost `'Hrvatska'` pa ju nije potrebno ručno unositi. **glavna_adresa** je `BOOLEAN NOT NULL` koji označava je li ta adresa primarna za dostavu, s podrazumijevanom vrijednošću `FALSE`.
 
 ```sql
 CREATE TABLE adresa (
     adresa_id INT AUTO_INCREMENT PRIMARY KEY,
     kupac_id INT NOT NULL,
-    ulica VARCHAR(150) NOT NULL,
-    grad VARCHAR(100) NOT NULL,
+    ulica_i_broj VARCHAR(100) NOT NULL,
+    grad VARCHAR(50) NOT NULL,
     postanski_broj VARCHAR(10) NOT NULL,
-    drzava VARCHAR(60) DEFAULT 'Hrvatska',
-    glavna_adresa BOOLEAN DEFAULT FALSE,
-    FOREIGN KEY (kupac_id) REFERENCES kupac(kupac_id) ON DELETE CASCADE
+    drzava VARCHAR(50) NOT NULL DEFAULT 'Hrvatska',
+    glavna_adresa BOOLEAN NOT NULL DEFAULT FALSE,
+    FOREIGN KEY (kupac_id) REFERENCES kupac(kupac_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 ```
 
@@ -141,15 +140,13 @@ CREATE TABLE dobavljac (
 
 ### 4.4 Relacija _kategorija_
 
-Grupira proizvode u logične cjeline kako bi pretraživanje u webshop-u bilo jednostavnije. Posebno je zanimljiv atribut **nadkategorija_id** strani ključ koji pokazuje na samu tablicu _kategorija_, tzv. samoreferencijalni odnos. Njime se postiže hijerarhija kategorija, primjerice "Mliječna čokolada" može biti podkategorija od "Čokolade". Ako je `NULL`, ta je kategorija na najvišoj razini. **naziv** je obavezan, **opis** je opcionalan.
+Grupira proizvode u logične cjeline kako bi pretraživanje u webshop-u bilo jednostavnije. **kategorija_id** je primarni ključ s `AUTO_INCREMENT`. **naziv** je obavezan atribut tipa `VARCHAR`, dok je **opis** opcionalan tekst koji dodatno opisuje sadržaj kategorije.
 
 ```sql
 CREATE TABLE kategorija (
     kategorija_id INT AUTO_INCREMENT PRIMARY KEY,
-    nadkategorija_id INT,
     naziv VARCHAR(100) NOT NULL,
-    opis TEXT,
-    FOREIGN KEY (nadkategorija_id) REFERENCES kategorija(kategorija_id)
+    opis TEXT
 );
 ```
 
@@ -157,7 +154,7 @@ CREATE TABLE kategorija (
 
 ### 4.5 Relacija _proizvod_
 
-Srž cijelog kataloga, svaki artikl koji prodajemo ima ovdje svoj zapis. **kategorija_id** je strani ključ koji ga smješta u odgovarajuću kategoriju. **cijena** je tipa `DECIMAL(10,2)` umjesto `FLOAT` jer se radi o novcu i bitna je preciznost na dvije decimale. **SKU** (Stock Keeping Unit) je interna šifra proizvoda koja mora biti jedinstvena (`UNIQUE`). **aktivan** je `BOOLEAN` koji omogućuje tkzv. meko brisanje, kad povučemo proizvod iz prodaje, ne brišemo ga iz baze nego ga samo označimo kao neaktivnog, čime čuvamo povijest. **datum_dodavanja** se automatski popunjava s `CURRENT_TIMESTAMP` pri unosu.
+Srž cijelog kataloga, svaki artikl koji prodajemo ima ovdje svoj zapis. **kategorija_id** je strani ključ s `ON DELETE RESTRICT ON UPDATE CASCADE` koji ga smješta u odgovarajuću kategoriju. **cijena** je tipa `DECIMAL(10,2)` umjesto `FLOAT` jer se radi o novcu, a ograničenje `CHECK (cijena > 0)` osigurava da cijena ne može biti nula ni negativna. **kolicina_na_skladistu** je `NOT NULL DEFAULT 0` s `CHECK (kolicina_na_skladistu >= 0)` koji sprječava negativno stanje zalihe. **SKU** (Stock Keeping Unit) je interna šifra proizvoda koja mora biti jedinstvena (`UNIQUE`). **aktivan** je `BOOLEAN NOT NULL` koji omogućuje tkzv. meko brisanje, kad povučemo proizvod iz prodaje, ne brišemo ga iz baze nego ga samo označimo kao neaktivnog, čime čuvamo povijest. **datum_dodavanja** je `NOT NULL` i automatski se popunjava s `CURRENT_TIMESTAMP` pri unosu.
 
 ```sql
 CREATE TABLE proizvod (
@@ -165,12 +162,12 @@ CREATE TABLE proizvod (
     kategorija_id INT NOT NULL,
     naziv VARCHAR(150) NOT NULL,
     opis TEXT,
-    cijena DECIMAL(10,2) NOT NULL,
-    kolicina_na_skladistu INT DEFAULT 0,
+    cijena DECIMAL(10,2) NOT NULL CHECK (cijena > 0),
+    kolicina_na_skladistu INT NOT NULL DEFAULT 0 CHECK (kolicina_na_skladistu >= 0),
     SKU VARCHAR(50) UNIQUE,
-    aktivan BOOLEAN DEFAULT TRUE,
-    datum_dodavanja DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (kategorija_id) REFERENCES kategorija(kategorija_id)
+    aktivan BOOLEAN NOT NULL DEFAULT TRUE,
+    datum_dodavanja DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (kategorija_id) REFERENCES kategorija(kategorija_id) ON DELETE RESTRICT ON UPDATE CASCADE
 );
 ```
 
@@ -178,18 +175,16 @@ CREATE TABLE proizvod (
 
 ### 4.6 Relacija _narudzba_
 
-Bilježi svaku kupovinu u webshop-u. Sadrži strane ključeve prema **kupac** i **adresa**. Pri naručivanju kupac odabire na koju od svojih adresa šalje paket. **datum_narudzbe** bilježi točan trenutak kreiranja narudžbe, **status** prati fazu obrade (npr. "U obradi", "Poslano", "Završena"), a **ukupan_iznos** tipa `DECIMAL(12,2)` predstavlja ukupnu vrijednost svih stavki te narudžbe.
+Bilježi svaku kupovinu u webshop-u. Sadrži strani ključ prema tablici **kupac** s `ON DELETE CASCADE`, dakle brisanjem kupca brišu se i sve njegove narudžbe. **datum_narudzbe** je `NOT NULL DEFAULT CURRENT_TIMESTAMP` i automatski bilježi trenutak kreiranja narudžbe. **status_narudzbe** prati fazu obrade s podrazumijevanom vrijednošću `'na_cekanju'`. **cijena_dostave** je `DECIMAL(10,2) NOT NULL DEFAULT 0.00` i bilježi trošak dostave koji može biti nula za besplatnu dostavu.
 
 ```sql
 CREATE TABLE narudzba (
     narudzba_id INT AUTO_INCREMENT PRIMARY KEY,
     kupac_id INT NOT NULL,
-    adresa_id INT NOT NULL,
-    datum_narudzbe DATETIME,
-    status VARCHAR(50),
-    ukupan_iznos DECIMAL(12,2),
-    FOREIGN KEY (kupac_id) REFERENCES kupac(kupac_id),
-    FOREIGN KEY (adresa_id) REFERENCES adresa(adresa_id)
+    datum_narudzbe DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    status_narudzbe VARCHAR(50) NOT NULL DEFAULT 'na_cekanju',
+    cijena_dostave DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    FOREIGN KEY (kupac_id) REFERENCES kupac(kupac_id) ON DELETE CASCADE
 );
 ```
 
@@ -197,18 +192,20 @@ CREATE TABLE narudzba (
 
 ### 4.7 Relacija _stavka_narudzbe_
 
-Budući da jedna narudžba može sadržavati više različitih proizvoda, svaki redak u košarici postaje zasebna stavka. **narudzba_id** i **proizvod_id** su strani ključevi koji je vežu uz narudžbu i konkretni proizvod. **kolicina** je obavezna. **cijena_po_komadu** sprema se u trenutku narudžbe, a ne uzima se direktno iz tablice _proizvod_, to je namjerno, jer bi inače naknadna promjena cijene utjecala i na stare narudžbe. **ukupna_cijena** je umnožak količine i cijene po komadu.
+Budući da jedna narudžba može sadržavati više različitih proizvoda, svaki redak u košarici postaje zasebna stavka. Primarni ključ je **stavka_narudzbe_id**. **narudzba_id** i **proizvod_id** su strani ključevi koji je vežu uz narudžbu i konkretni proizvod. **kolicina** je obavezna s `CHECK (kolicina > 0)`. **cijena_po_komadu** sprema se u trenutku narudžbe s `CHECK (cijena_po_komadu > 0)`, a ne uzima se direktno iz tablice _proizvod_ — namjerno, jer bi naknadna promjena cijene utjecala i na stare narudžbe. Složeno ograničenje `UNIQUE (narudzba_id, proizvod_id)` sprječava da se isti proizvod doda dva puta u istu narudžbu. FK za narudžbu ima `ON DELETE CASCADE`, a FK za proizvod ima `ON DELETE RESTRICT`.
 
 ```sql
 CREATE TABLE stavka_narudzbe (
-    stavka_id INT AUTO_INCREMENT PRIMARY KEY,
+    stavka_narudzbe_id INT AUTO_INCREMENT PRIMARY KEY,
     narudzba_id INT NOT NULL,
     proizvod_id INT NOT NULL,
-    kolicina INT NOT NULL,
-    cijena_po_komadu DECIMAL(10,2) NOT NULL,
-    ukupna_cijena DECIMAL(12,2),
-    FOREIGN KEY (narudzba_id) REFERENCES narudzba(narudzba_id),
-    FOREIGN KEY (proizvod_id) REFERENCES proizvod(proizvod_id)
+    kolicina INT NOT NULL CHECK (kolicina > 0),
+    cijena_po_komadu DECIMAL(10,2) NOT NULL CHECK (cijena_po_komadu > 0),
+
+    UNIQUE (narudzba_id, proizvod_id),
+
+    FOREIGN KEY (narudzba_id) REFERENCES narudzba(narudzba_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (proizvod_id) REFERENCES proizvod(proizvod_id) ON DELETE RESTRICT ON UPDATE CASCADE
 );
 ```
 
@@ -216,17 +213,16 @@ CREATE TABLE stavka_narudzbe (
 
 ### 4.8 Relacija _placanje_
 
-Bilježi detalje transakcije za svaku narudžbu. **narudzba_id** je strani ključ prema narudžbi. **nacin_placanja** opisuje kako je kupac platio (npr. "Kartica", "PayPal", "Pouzećem"), **status_placanja** prati je li plaćanje uspješno, a **datum_placanja** bilježi točan trenutak kad je transakcija izvršena.
+Bilježi detalje transakcije za svaku narudžbu. **narudzba_id** je strani ključ s `NOT NULL UNIQUE`, čime se osigurava veza 1:1 između plaćanja i narudžbe — svaka narudžba ima točno jedno plaćanje. **nacin_placanja** je `NOT NULL` i opisuje kako je kupac platio (npr. "Kartica", "PayPal", "Pouzećem"). **status_placanja** je `NOT NULL DEFAULT 'u_obradi'` i prati je li plaćanje uspješno. **datum_placanja** je `NOT NULL DEFAULT CURRENT_TIMESTAMP` i automatski bilježi trenutak transakcije. FK ima `ON DELETE RESTRICT` koji sprječava brisanje narudžbe dok postoji plaćanje.
 
 ```sql
 CREATE TABLE placanje (
     placanje_id INT AUTO_INCREMENT PRIMARY KEY,
-    narudzba_id INT,
-    nacin_placanja VARCHAR(50),
-    iznos DECIMAL(12,2),
-    status_placanja VARCHAR(50),
-    datum_placanja DATETIME,
-    FOREIGN KEY (narudzba_id) REFERENCES narudzba(narudzba_id)
+    narudzba_id INT NOT NULL UNIQUE,
+    nacin_placanja VARCHAR(50) NOT NULL,
+    status_placanja VARCHAR(50) NOT NULL DEFAULT 'u_obradi',
+    datum_placanja DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (narudzba_id) REFERENCES narudzba(narudzba_id) ON DELETE RESTRICT ON UPDATE CASCADE
 );
 ```
 
@@ -234,18 +230,18 @@ CREATE TABLE placanje (
 
 ### 4.9 Relacija _dostava_
 
-Nakon što je narudžba plaćena, paket se predaje kurirskoj službi. **narudzba_id** veže dostavu uz narudžbu. **kurirska_sluzba** i **broj_posiljke** (tracking broj) daju kupcu mogućnost praćenja paketa. **procijenjeni_datum** i **stvarni_datum** su oba tipa `DATE`, uspoređivanjem tih dvaju polja možemo pratiti koliko kurirske službe kasne ili jesu li paket dostavile ranije nego što je planirano.
+Nakon što je narudžba plaćena, paket se predaje kurirskoj službi. **narudzba_id** je `NOT NULL UNIQUE`, čime se osigurava veza 1:1 između dostave i narudžbe. **kurirska_sluzba** je `NOT NULL`. **broj_posiljke** (tracking broj) je opcionalan. **status_dostave** je `NOT NULL DEFAULT 'priprema'` i prati fazu isporuke. **procijenjeni_datum** i **stvarni_datum** su oba tipa `DATE` — uspoređivanjem tih dvaju polja možemo pratiti kasni li kurirska služba. FK ima `ON DELETE RESTRICT ON UPDATE CASCADE`.
 
 ```sql
 CREATE TABLE dostava (
     dostava_id INT AUTO_INCREMENT PRIMARY KEY,
-    narudzba_id INT,
-    kurirska_sluzba VARCHAR(100),
+    narudzba_id INT NOT NULL UNIQUE,
+    kurirska_sluzba VARCHAR(100) NOT NULL,
     broj_posiljke VARCHAR(50),
-    status_dostave VARCHAR(50),
+    status_dostave VARCHAR(50) NOT NULL DEFAULT 'priprema',
     procijenjeni_datum DATE,
     stvarni_datum DATE,
-    FOREIGN KEY (narudzba_id) REFERENCES narudzba(narudzba_id)
+    FOREIGN KEY (narudzba_id) REFERENCES narudzba(narudzba_id) ON DELETE RESTRICT ON UPDATE CASCADE
 );
 ```
 
@@ -253,16 +249,15 @@ CREATE TABLE dostava (
 
 ### 4.10 Relacija _nabava_
 
-Dok prethodne tablice prate prodaju prema kupcima, ova tablica pokriva drugu stranu, tj. kupovinu robe od dobavljača. **dobavljac_id** je strani ključ koji pokazuje od koga je roba naručena. **datum_nabave**, **status** i **ukupan_iznos** prate tijek i vrijednost cijele nabave.
+Dok prethodne tablice prate prodaju prema kupcima, ova tablica pokriva drugu stranu, tj. kupovinu robe od dobavljača. **dobavljac_id** je strani ključ `NOT NULL` koji pokazuje od koga je roba naručena. **datum_nabave** je `NOT NULL DEFAULT CURRENT_TIMESTAMP` i automatski bilježi trenutak narudžbe. **status_nabave** je `NOT NULL DEFAULT 'na_cekanju'` i prati tijek nabave. FK ima `ON DELETE RESTRICT ON UPDATE CASCADE` što sprječava brisanje dobavljača dok postoje aktivne nabave.
 
 ```sql
 CREATE TABLE nabava (
     nabava_id INT AUTO_INCREMENT PRIMARY KEY,
-    dobavljac_id INT,
-    datum_nabave DATETIME,
-    status VARCHAR(50),
-    ukupan_iznos DECIMAL(12,2),
-    FOREIGN KEY (dobavljac_id) REFERENCES dobavljac(dobavljac_id)
+    dobavljac_id INT NOT NULL,
+    datum_nabave DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    status_nabave VARCHAR(50) NOT NULL DEFAULT 'na_cekanju',
+    FOREIGN KEY (dobavljac_id) REFERENCES dobavljac(dobavljac_id) ON DELETE RESTRICT ON UPDATE CASCADE
 );
 ```
 
@@ -270,7 +265,7 @@ CREATE TABLE nabava (
 
 ### 4.11 Relacija _stavka_nabave_
 
-Analogno stavkama narudžbe, ova tablica detaljizira što je točno nabavljeno u sklopu jedne nabave. **nabava_id** je strani ključ s `ON DELETE CASCADE`, tj. brisanjem nabave automatski se brišu i sve njene stavke. **proizvod_id** pokazuje koji je artikl nabavljen, **kolicina** koliko komada, a **nabavna_cijena** je cijena po komadu od dobavljača, koja se razlikuje od prodajne cijene.
+Analogno stavkama narudžbe, ova tablica detaljizira što je točno nabavljeno u sklopu jedne nabave. **nabava_id** je strani ključ s `ON DELETE CASCADE ON UPDATE CASCADE`, tj. brisanjem nabave automatski se brišu i sve njene stavke. **proizvod_id** ima `ON DELETE RESTRICT` koji sprječava brisanje proizvoda dok je u nabavi. **kolicina** označava koliko komada je nabavljeno, a **nabavna_cijena** je cijena po komadu od dobavljača s `CHECK (nabavna_cijena > 0)`, koja se razlikuje od prodajne cijene. Složeno ograničenje `UNIQUE (nabava_id, proizvod_id)` sprječava dupliciranje istog proizvoda unutar jedne nabave.
 
 ```sql
 CREATE TABLE stavka_nabave (
@@ -278,9 +273,12 @@ CREATE TABLE stavka_nabave (
     nabava_id INT NOT NULL,
     proizvod_id INT NOT NULL,
     kolicina INT NOT NULL,
-    nabavna_cijena DECIMAL(10,2) NOT NULL,
-    FOREIGN KEY (nabava_id) REFERENCES nabava(nabava_id) ON DELETE CASCADE,
-    FOREIGN KEY (proizvod_id) REFERENCES proizvod(proizvod_id)
+    nabavna_cijena DECIMAL(10,2) NOT NULL CHECK (nabavna_cijena > 0),
+
+    UNIQUE (nabava_id, proizvod_id),
+
+    FOREIGN KEY (nabava_id) REFERENCES nabava(nabava_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (proizvod_id) REFERENCES proizvod(proizvod_id) ON DELETE RESTRICT ON UPDATE CASCADE
 );
 ```
 
@@ -288,19 +286,21 @@ CREATE TABLE stavka_nabave (
 
 ### 4.12 Relacija _recenzija_
 
-Kupci mogu ocjenjivati proizvode koje su kupili. **kupac_id** i **proizvod_id** su strani ključevi definirani s `ON DELETE CASCADE`. **ocjena** je tipa `TINYINT` s ograničenjem `CHECK (ocjena BETWEEN 1 AND 5)`, dakle baza ne prihvaća vrijednosti izvan tog raspona. **komentar** je opcionalan tekst, a **datum_recenzije** se automatski popunjava. Posebno je vrijedno naglasiti složeno ograničenje `UNIQUE (kupac_id, proizvod_id)` koje sprječava da isti kupac ostavi više od jedne recenzije za isti proizvod.
+Kupci mogu ocjenjivati proizvode koje su kupili. **kupac_id** je strani ključ s `ON DELETE RESTRICT`, dakle kupac se ne može obrisati dok ima recenzije. **proizvod_id** je strani ključ s `ON DELETE CASCADE`, dakle brisanjem proizvoda brišu se i sve njegove recenzije. **ocjena** je `TINYINT NOT NULL` s ograničenjem `CHECK (ocjena BETWEEN 1 AND 5)`, dakle baza ne prihvaća vrijednosti izvan tog raspona. **komentar** je opcionalan tekst, a **datum_recenzije** je `NOT NULL` i automatski se popunjava. Složeno ograničenje `UNIQUE (kupac_id, proizvod_id)` sprječava da isti kupac ostavi više od jedne recenzije za isti proizvod.
 
 ```sql
 CREATE TABLE recenzija (
     recenzija_id INT AUTO_INCREMENT PRIMARY KEY,
     kupac_id INT NOT NULL,
     proizvod_id INT NOT NULL,
-    ocjena TINYINT CHECK (ocjena BETWEEN 1 AND 5),
+    ocjena TINYINT NOT NULL CHECK (ocjena BETWEEN 1 AND 5),
     komentar TEXT,
-    datum_recenzije DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (kupac_id) REFERENCES kupac(kupac_id) ON DELETE CASCADE,
-    FOREIGN KEY (proizvod_id) REFERENCES proizvod(proizvod_id) ON DELETE CASCADE,
-    UNIQUE (kupac_id, proizvod_id)
+    datum_recenzije DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    UNIQUE (kupac_id, proizvod_id),
+
+    FOREIGN KEY (kupac_id) REFERENCES kupac(kupac_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    FOREIGN KEY (proizvod_id) REFERENCES proizvod(proizvod_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 ```
 

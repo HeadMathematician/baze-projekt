@@ -7,7 +7,7 @@
 ### 1. godina prijediplomskog sveučilišnog studija informatike
 
 - **Luka Juroš** (JMBAG: )
-- **Teo Kupčinovac** (JMBAG: )
+- **Teo Kupčinovac** (JMBAG: 1311029868)
 - **Luka Wrana** (JMBAG: )
 - **Andrej Pucković** (JMBAG: )
 - **Danijel Margić** (JMBAG: )
@@ -54,9 +54,14 @@ opis -Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod te
 
 ## 4. Relacije (Teo Kupčinovac)
 
-opis
+Nakon izrade konceptualnog i logičkog modela baze podataka slijedi implementacija relacija u MySQL sustavu. Relacije predstavljaju tablice u kojima se pohranjuju podaci o određenim entitetima poslovnog procesa. Svaka relacija sastoji se od atributa definiranih odgovarajućim tipovima podataka i ograničenjima. Prilikom izrade relacija korišten je SQL jezik i naredba `CREATE TABLE`. Svaka tablica definira vlastite atribute, primarne ključeve (`PRIMARY KEY`) i strane ključeve (`FOREIGN KEY`) koji omogućuju povezivanje podataka između različitih relacija. Primarni ključ služi za jedinstvenu identifikaciju svakog zapisa unutar tablice, dok strani ključ omogućuje povezivanje tablica i održavanje referencijalnog integriteta podataka. Osim toga, korištena su i dodatna ograničenja poput:
 
-- objasniti kako se stvaraju relacije u MySQL
+- `NOT NULL` – atribut mora sadržavati vrijednost
+- `UNIQUE` – vrijednosti atributa moraju biti jedinstvene
+- `DEFAULT` – definira zadanu vrijednost atributa
+- `CHECK` – ograničava dozvoljene vrijednosti atributa
+- `AUTO_INCREMENT` – automatski povećava vrijednost primarnog ključa
+- `ON DELETE CASCADE` – automatski briše povezane zapise
 
 &nbsp;
 

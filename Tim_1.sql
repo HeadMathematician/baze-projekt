@@ -439,7 +439,7 @@ INSERT INTO recenzija (kupac_id, proizvod_id, ocjena, komentar, datum_recenzije)
 
 -- Luka Wrana - 3 pogleda --
 
-CREATE OR REPLACE VIEW prihod_po_proizvodu AS
+CREATE OR REPLACE VIEW v_prihod_po_proizvodu AS
 SELECT 
     p.proizvod_id,
     p.naziv,
@@ -455,11 +455,11 @@ WHERE n.datum_narudzbe >= DATE_SUB(NOW(), INTERVAL 1 MONTH)
 GROUP BY p.proizvod_id, p.naziv;
 
 SELECT *
-FROM prihod_po_proizvodu
+FROM v_prihod_po_proizvodu
 ORDER BY ukupni_prihod DESC;
 
 
-CREATE OR REPLACE VIEW proizvodi_po_kolicini AS
+CREATE OR REPLACE VIEW v_proizvodi_po_kolicini AS
 SELECT 
     p.proizvod_id,
     p.naziv,
@@ -474,11 +474,11 @@ WHERE n.datum_narudzbe >= DATE_SUB(NOW(), INTERVAL 1 MONTH)
 GROUP BY p.proizvod_id, p.naziv;
 
 SELECT *
-FROM proizvodi_po_kolicini
+FROM v_proizvodi_po_kolicini
 ORDER BY ukupna_kolicina DESC;
 
 
-CREATE OR REPLACE VIEW koeficijent_kolicine_po_proizvodu AS
+CREATE OR REPLACE VIEW v_koeficijent_kolicine_po_proizvodu AS
 SELECT 
     p.proizvod_id,
     p.naziv,
@@ -497,398 +497,341 @@ WHERE n.datum_narudzbe >= DATE_SUB(NOW(), INTERVAL 1 MONTH)
 GROUP BY p.proizvod_id, p.naziv;
 
 SELECT *
-FROM koeficijent_kolicine_po_proizvodu
+FROM v_koeficijent_kolicine_po_proizvodu
 ORDER BY prosjecna_kolicina_po_narudzbi DESC;
 
 
--- Andrej Pucović - 5 upita --
+-- Danijel Margić - 5 upita i 2 pogled --
 
--- Upit 1: Ukupan broj narudžbi i potrošnja po kupcu
+-- Upit 1 -- 
 SELECT 
-    k.kupac_id,
-    CONCAT(k.ime, ' ', k.prezime) AS kupac,
-    k.email,
-    COUNT(n.narudzba_id) AS broj_narudzbi,
-    ROUND(SUM(n.ukupan_iznos), 2) AS ukupno_potroseno,
-    ROUND(AVG(n.ukupan_iznos), 2) AS prosjecna_vrijednost_narudzbe
-FROM kupac k
-JOIN narudzba n ON k.kupac_id = n.kupac_id
-GROUP BY k.kupac_id, k.ime, k.prezime, k.email
-HAVING COUNT(n.narudzba_id) >= 1
-ORDER BY ukupno_potroseno DESC;
+    p.proizvod_id AS Sifra_proizvoda,
+    p.naziv AS Naziv_cokolade,
+    p.cijena AS Cijena_u_eurima,
+    p.kolicina_na_skladistu AS Stanje_zaliha,
+    CASE 
+        WHEN p.kolicina_na_skladistu > 40 THEN 'Sigurna zaliha'
+        ELSE 'Niska zaliha'
+    END AS Status_zaliha
+FROM proizvod AS p
+WHERE p.aktivan = TRUE 
+  AND p.kategorija_id = 1
+  AND p.kolicina_na_skladistu > 0
+  AND (p.naziv LIKE '%tamna%' OR p.naziv LIKE '%dark%')
+ORDER BY p.cijena DESC;
 
--- Upit 2: Najprodavaniji proizvodi po količini i prihodu
+
+-- Pogled 1 -- 
+CREATE OR REPLACE VIEW v_analiza_uspjesnosti_kategorija AS
 SELECT 
-    p.proizvod_id,
-    p.naziv,
-    k.naziv AS kategorija,
-    SUM(sn.kolicina) AS ukupno_prodano,
-    ROUND(SUM(sn.ukupna_cijena), 2) AS ukupni_prihod
-FROM proizvod p
-JOIN kategorija k ON p.kategorija_id = k.kategorija_id
-JOIN stavka_narudzbe sn ON p.proizvod_id = sn.proizvod_id
-GROUP BY p.proizvod_id, p.naziv, k.naziv
-ORDER BY ukupno_prodano DESC, ukupni_prihod DESC
-LIMIT 5;
-
--- Upit 3: Proizvodi koji nisu prodani 
-SELECT 
-    p.proizvod_id,
-    p.naziv,
-    p.cijena,
-    p.kolicina_na_skladistu
-FROM proizvod p
-LEFT JOIN stavka_narudzbe sn ON p.proizvod_id = sn.proizvod_id
-WHERE sn.proizvod_id IS NULL
-ORDER BY p.naziv;
-
--- Upit 4: Kupci čija je potrošnja veća od prosjeka
-SELECT *
-FROM (
-    SELECT 
-        k.kupac_id,
-        CONCAT(k.ime, ' ', k.prezime) AS kupac,
-        ROUND(SUM(n.ukupan_iznos), 2) AS ukupna_potrosnja
-    FROM kupac k
-    JOIN narudzba n ON k.kupac_id = n.kupac_id
-    GROUP BY k.kupac_id, k.ime, k.prezime
-) x
-WHERE x.ukupna_potrosnja > (
-    SELECT AVG(potrosnja_po_kupcu)
-    FROM (
-        SELECT SUM(n2.ukupan_iznos) AS potrosnja_po_kupcu
-        FROM narudzba n2
-        GROUP BY n2.kupac_id
-    ) y
-)
-ORDER BY x.ukupna_potrosnja DESC;
-
--- Upit 5: Mjesečni prihod trgovine
-SELECT 
-    YEAR(datum_narudzbe) AS godina,
-    MONTH(datum_narudzbe) AS mjesec,
-    COUNT(*) AS broj_narudzbi,
-    ROUND(SUM(ukupan_iznos), 2) AS mjesecni_prihod,
-    ROUND(AVG(ukupan_iznos), 2) AS prosjecna_narudzba
-FROM narudzba
-GROUP BY YEAR(datum_narudzbe), MONTH(datum_narudzbe)
-ORDER BY godina, mjesec;
-
-
--- Andrej Pucović - 5 pogleda
-
--- Pogled 1: Aktivni kupci s osnovnim podacima
-CREATE VIEW AP_Pogled_aktivni_kupci AS
-SELECT 
-    kupac_id,
-    ime,
-    prezime,
-    email,
-    telefon,
-    datum_registracije
-FROM kupac
-WHERE aktivan = TRUE;
-
--- Pogled 2: Proizvodi i njihove kategorije
-CREATE VIEW AP_Pogled_proizvodi_kategorije AS
-SELECT 
-    p.proizvod_id,
-    p.naziv AS proizvod,
-    k.naziv AS kategorija,
-    p.cijena,
-    p.kolicina_na_skladistu,
-    p.SKU
-FROM proizvod p
-RIGHT JOIN kategorija k ON p.kategorija_id = k.kategorija_id;
-
--- Pogled 3: Detalji narudžbi
-CREATE VIEW AP_Pogled_detalji_narudzbi AS
-SELECT 
-    n.narudzba_id,
-    CONCAT(k.ime, ' ', k.prezime) AS kupac,
-    n.datum_narudzbe,
-    n.status_narudzbe,
-    n.ukupan_iznos,
-    a.grad,
-    a.ulica
-FROM narudzba n
-JOIN kupac k ON n.kupac_id = k.kupac_id
-JOIN adresa a ON n.adresa_id = a.adresa_id;
-
--- Pogled 4: Stavke narudžbi
-CREATE VIEW AP_Pogled_stavke_narudzbe AS
-SELECT 
-    sn.stavka_narudzbe_id,
-    sn.narudzba_id,
-    p.naziv AS proizvod,
-    sn.kolicina,
-    sn.cijena_po_komadu,
-    sn.ukupna_cijena
-FROM stavka_narudzbe sn
-JOIN proizvod p 
-    ON sn.proizvod_id = p.proizvod_id
-    AND sn.ukupna_cijena > sn.cijena_po_komadu;
-
--- Pogled 5: Plaćanja narudžbi
-CREATE VIEW AP_Pogled_placanja_narudzbi AS
-SELECT 
-    p.placanje_id,
-    p.narudzba_id,
-    CONCAT(k.ime, ' ', k.prezime) AS kupac,
-    p.nacin_placanja,
-    p.iznos,
-    p.status_placanja,
-    p.datum_placanja,
-    n.status_narudzbe AS status_narudzbe
-FROM placanje p
-JOIN narudzba n ON p.narudzba_id = n.narudzba_id
-JOIN kupac k ON n.kupac_id = k.kupac_id;
-
-
--- Danijel Margić - 5 upita --
-
-SELECT 
-    p.proizvod_id,
-    p.naziv AS proizvod,
-    p.cijena AS prodajna_cijena,
-    ROUND(AVG(sn.nabavna_cijena), 2) AS prosjecna_nabavna_cijena,
-    ROUND((p.cijena - AVG(sn.nabavna_cijena)), 2) AS profit_po_komadu,
-    ROUND(((p.cijena - AVG(sn.nabavna_cijena)) / p.cijena) * 100, 2) AS marza_postotak
-FROM proizvod p
-INNER JOIN stavka_nabave sn ON p.proizvod_id = sn.proizvod_id
-GROUP BY p.proizvod_id, p.naziv, p.cijena
-ORDER BY marza_postotak DESC;
-
-SELECT 
-    k.naziv AS kategorija_naziv,
-    COUNT(DISTINCT sn.narudzba_id) AS ukupno_narudzbi,
-    SUM(sn.kolicina) AS prodano_komada,
-    SUM(sn.ukupna_cijena) AS ukupni_prihod,
-    ROUND(AVG(sn.ukupna_cijena), 2) AS prosjecna_vrijednost_stavke
-FROM kategorija k
-INNER JOIN proizvod p ON k.kategorija_id = p.kategorija_id
-INNER JOIN stavka_narudzbe sn ON p.proizvod_id = sn.proizvod_id
+    k.kategorija_id AS Sifra_kategorije,
+    k.naziv AS Naziv_kategorije,
+    COUNT(DISTINCT sn.narudzba_id) AS Ukupno_narudzbi,
+    SUM(sn.kolicina) AS Ukupno_prodanih_komada,
+    ROUND(SUM(sn.kolicina * sn.cijena_po_komadu), 2) AS Ukupna_zarada_EUR
+FROM kategorija AS k
+INNER JOIN proizvod AS p ON k.kategorija_id = p.kategorija_id
+INNER JOIN stavka_narudzbe AS sn ON p.proizvod_id = sn.proizvod_id
 GROUP BY k.kategorija_id, k.naziv
-ORDER BY ukupni_prihod DESC;
+ORDER BY Ukupna_zarada_EUR DESC;
 
-SELECT 
-    p.proizvod_id,
-    p.naziv AS proizvod_naziv,
-    p.cijena,
-    ROUND(AVG(r.ocjena), 2) AS prosjecna_ocjena,
-    COUNT(r.recenzija_id) AS broj_recenzija
-FROM proizvod p
-INNER JOIN recenzija r ON p.proizvod_id = r.proizvod_id
-GROUP BY p.proizvod_id, p.naziv, p.cijena
-HAVING broj_recenzija >= 2
-ORDER BY prosjecna_ocjena DESC, broj_recenzija DESC;
-
-SELECT 
-    p.proizvod_id,
-    p.naziv,
-    p.kolicina_na_skladistu,
-    SUM(sn.kolicina) AS ukupno_prodano
-FROM proizvod p
-INNER JOIN stavka_narudzbe sn ON p.proizvod_id = sn.proizvod_id
-WHERE p.kolicina_na_skladistu < (
-    SELECT AVG(kolicina_na_skladistu) FROM proizvod WHERE aktivan = TRUE
-)
-GROUP BY p.proizvod_id, p.naziv, p.kolicina_na_skladistu
-ORDER BY p.kolicina_na_skladistu ASC;
-
-SELECT 
-    p.proizvod_id,
-    p.SKU,
-    p.naziv AS proizvod_naziv,
-    COALESCE(SUM(sn.kolicina), 0) AS ukupno_prodanih_komada,
-    COALESCE(SUM(sn.ukupna_cijena), 0) AS ukupni_ostvareni_prihod
-FROM proizvod p
-LEFT JOIN stavka_narudzbe sn ON p.proizvod_id = sn.proizvod_id
-GROUP BY p.proizvod_id, p.SKU, p.naziv
-ORDER BY ukupno_prodanih_komada ASC;
-
--- Danijel Margić - 5 pogleda --
-
-CREATE OR REPLACE VIEW v_pregled_potrosnje_kupaca AS
-SELECT 
-    k.kupac_id,
-    CONCAT(k.ime, ' ', k.prezime) AS kupac_ime_prezime,
-    k.email,
-    COUNT(n.narudzba_id) AS ukupno_narudzbi,
-    COALESCE(SUM(n.ukupan_iznos), 0) AS ukupno_potroseno
-FROM kupac k
-LEFT JOIN narudzba n ON k.kupac_id = n.kupac_id
-GROUP BY k.kupac_id, k.ime, k.prezime, k.email;
-
--- Pozivanje pogleda uz sortiranje po ukupnoj potrošnji silazno
-SELECT * FROM v_pregled_potrosnje_kupaca 
-ORDER BY ukupno_potroseno DESC;
-
-
-CREATE OR REPLACE VIEW v_analiza_dobavljaca_opskrba AS
-SELECT 
-    d.dobavljac_id,
-    d.naziv AS dobavljac_naziv,
-    d.kontakt_osoba,
-    COUNT(n.nabava_id) AS broj_realiziranih_nabava,
-    COALESCE(SUM(n.ukupan_iznos), 0) AS ukupno_isplaceno_dobavljacu
-FROM nabava n
-RIGHT JOIN dobavljac d ON n.dobavljac_id = d.dobavljac_id
-GROUP BY d.dobavljac_id, d.naziv, d.kontakt_osoba;
-
--- Pozivanje pogleda uz sortiranje po ukupnim troškovima nabave silazno
-SELECT * FROM v_analiza_dobavljaca_opskrba 
-ORDER BY ukupno_isplaceno_dobavljacu DESC;
-
-
-CREATE OR REPLACE VIEW v_analiza_popularnosti_proizvoda AS
-SELECT 
-    p.proizvod_id,
-    p.naziv AS proizvod_naziv,
-    COALESCE(SUM(sn.kolicina), 0) AS ukupno_prodanih_komada,
-    COALESCE(SUM(sn.ukupna_cijena), 0) AS ukupni_ostvareni_prihod
-FROM proizvod p
-LEFT JOIN stavka_narudzbe sn ON p.proizvod_id = sn.proizvod_id
-GROUP BY p.proizvod_id, p.naziv
-ORDER BY ukupno_prodanih_komada DESC;
-
--- Pozivanje pogleda uz sortiranje po prodanim komadima silazno
-SELECT * FROM v_analiza_popularnosti_proizvoda 
-ORDER BY ukupno_prodanih_komada DESC;
-
-
-CREATE OR REPLACE VIEW v_javne_recenzije_proizvoda AS
-SELECT 
-    r.recenzija_id,
-    p.naziv AS proizvod_naziv,
-    CONCAT(k.ime, ' ', k.prezime) AS kupac_autor,
-    r.ocjena,
-    r.komentar,
-    r.datum_recenzije
-FROM recenzija r
-INNER JOIN proizvod p ON r.proizvod_id = p.proizvod_id
-INNER JOIN kupac k ON r.kupac_id = k.kupac_id;
-
--- uz dodavanje uvjeta lako se izaberu recenzije sa odredjenom ocjenom
--- WHERE r.ocjena = 1; 
-
--- Pozivanje pogleda uz sortiranje po ocjenama uzlazno
+SELECT * FROM v_analiza_uspjesnosti_kategorija;
 
 SELECT * 
-FROM v_javne_recenzije_proizvoda 
-ORDER BY ocjena ASC;
+FROM v_analiza_uspjesnosti_kategorija
+WHERE Ukupna_zarada_EUR > 500.00;
 
-CREATE OR REPLACE VIEW v_logistika_dostave_detalji AS
+SELECT * 
+FROM v_analiza_uspjesnosti_kategorija
+WHERE Naziv_kategorije = 'Tamna čokolada';
+
+
+-- Pogled 2 -- 
+CREATE OR REPLACE VIEW v_analiza_tereta_dostave AS
 SELECT 
-    d.dostava_id,
-    d.narudzba_id,
-    CONCAT(k.ime, ' ', k.prezime) AS primatelj,
-    CONCAT(a.ulica, ', ', a.postanski_broj, ' ', a.grad) AS adresa_dostave,
-    d.kurirska_sluzba,
-    d.broj_posiljke,
-    d.status_dostave
-FROM dostava d
-INNER JOIN narudzba n ON d.narudzba_id = n.narudzba_id
-INNER JOIN kupac k ON n.kupac_id = k.kupac_id
-INNER JOIN adresa a ON n.adresa_id = a.adresa_id;
+    n.narudzba_id AS Sifra_narudzbe,
+    CONCAT(k.ime, ' ', k.prezime) AS Kupac,
+    n.cijena_dostave AS Cijena_dostave_EUR,
+    ROUND(SUM(sn.kolicina * sn.cijena_po_komadu), 2) AS Vrijednost_robe_EUR,
+    CASE 
+        WHEN n.cijena_dostave = 0 THEN 'Besplatna dostava'
+        WHEN (n.cijena_dostave / SUM(sn.kolicina * sn.cijena_po_komadu)) * 100 > 15.0 THEN 'Kritican trosak (iznad 15%)'
+        ELSE 'Optimalan trosak'
+    END AS Indeks_tereta_dostave
+FROM narudzba AS n
+INNER JOIN kupac AS k ON n.kupac_id = k.kupac_id
+INNER JOIN stavka_narudzbe AS sn ON n.narudzba_id = sn.narudzba_id
+GROUP BY n.narudzba_id, k.ime, k.prezime, n.cijena_dostave
+ORDER BY Vrijednost_robe_EUR DESC;
 
--- Pozivanje pogleda uz filtriranje samo onih dostava koje su u tijeku
-SELECT * FROM v_logistika_dostave_detalji 
-WHERE status_dostave IN ('U tranzitu', 'Otpremljeno');
+SELECT * FROM v_analiza_tereta_dostave;
 
--- Andrej Pucović i Danijel Margić - Triggeri --
+-- Upit 2 -- 
+SELECT 
+    p.proizvod_id AS Sifra_proizvoda,
+    p.naziv AS Naziv_cokolade,
+    p.kolicina_na_skladistu AS Kolicina_zaliha,
+    p.cijena AS Cijena_po_komadu,
+    ROUND((p.kolicina_na_skladistu * p.cijena), 2) AS Vrijednost_zarobljenog_kapitala
+FROM proizvod AS p
+WHERE p.aktivan = TRUE
+GROUP BY p.proizvod_id, p.naziv, p.kolicina_na_skladistu, p.cijena
+HAVING Vrijednost_zarobljenog_kapitala > (
+    SELECT AVG(izvedeno_stanje.vrijednost_artikla)
+    FROM (
+        SELECT (p2.kolicina_na_skladistu * p2.cijena) AS vrijednost_artikla
+        FROM proizvod AS p2
+        WHERE p2.aktivan = TRUE
+    ) AS izvedeno_stanje
+)
+ORDER BY Vrijednost_zarobljenog_kapitala DESC;
 
-DELIMITER $$
 
-CREATE TRIGGER trg_stavka_narudzbe_kontrola
-BEFORE INSERT ON stavka_narudzbe
-FOR EACH ROW
-BEGIN
-    DECLARE dostupno_na_skladistu INT;
-    
-    -- 1. Dohvaćanje trenutnog stanja na skladištu za proizvod
-    SELECT kolicina_na_skladistu INTO dostupno_na_skladistu
-    FROM proizvod
-    WHERE proizvod_id = NEW.proizvod_id;
-    
-    -- 2. Provjera ima li dovoljno robe na skladištu
-    IF NEW.kolicina > dostupno_na_skladistu THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Greška: Nema dovoljno proizvoda na skladištu za izvršavanje narudžbe!';
-    END IF;
-    
-    -- 3. Automatski izračun ukupne cijene stavke
-    SET NEW.ukupna_cijena = NEW.kolicina * NEW.cijena_po_komadu;
-END$$
+-- Upit 2 --
+SELECT 
+    DAYNAME(n.datum_narudzbe) AS Dan_u_tjednu,
+    COUNT(DISTINCT n.narudzba_id) AS Ukupan_broj_narudzbi,
+    SUM(sn.kolicina) AS Ukupno_prodanih_komada,
+    ROUND(AVG(sn.kolicina * sn.cijena_po_komadu), 2) AS Prosjecna_vrijednost_stavke_EUR
+FROM narudzba AS n
+INNER JOIN stavka_narudzbe AS sn ON n.narudzba_id = sn.narudzba_id
+GROUP BY DAYNAME(n.datum_narudzbe), WEEKDAY(n.datum_narudzbe)
+ORDER BY WEEKDAY(n.datum_narudzbe) ASC;
 
-DELIMITER ;
 
-INSERT INTO stavka_narudzbe (narudzba_id, proizvod_id, kolicina, cijena_po_komadu) 
-VALUES (1, 1, 2, 3.50);
+-- Upit 4 -- 
+SELECT 
+    d.status_dostave AS Status_isporuke,
+    COUNT(d.dostava_id) AS Broj_evidentiranih_paketa,
+    ROUND(AVG(n.cijena_dostave), 2) AS Prosjecna_cijena_dostave_EUR
+FROM dostava AS d
+JOIN narudzba AS n ON d.narudzba_id = n.narudzba_id
+GROUP BY d.status_dostave
+HAVING AVG(n.cijena_dostave) > (
+    SELECT AVG(izvedena_statistika.prosjek_statusa)
+    FROM (
+        SELECT AVG(n2.cijena_dostave) AS prosjek_statusa
+        FROM dostava AS d2
+        JOIN narudzba AS n2 ON d2.narudzba_id = n2.narudzba_id
+        GROUP BY d2.status_dostave
+    ) AS izvedena_statistika
+)
+ORDER BY Prosjecna_cijena_dostave_EUR DESC;
 
-SELECT * FROM stavka_narudzbe WHERE narudzba_id = 1 AND proizvod_id = 1;
 
-INSERT INTO stavka_narudzbe (narudzba_id, proizvod_id, kolicina, cijena_po_komadu) 
-VALUES (1, 1, 500, 3.50);
+-- Upit 5 --
+SELECT 
+    n.narudzba_id AS Sifra_narudzbe,
+    n.datum_narudzbe AS Datum_transakcije,
+    SUM(sn.kolicina) AS Ukupno_komada_u_kosarici,
+    MIN(sn.cijena_po_komadu) AS Najjeftinija_stavka_narudzbe,
+    MAX(sn.cijena_po_komadu) AS Najskuplja_stavka_narudzbe
+FROM narudzba AS n
+INNER JOIN stavka_narudzbe AS sn ON n.narudzba_id = sn.narudzba_id
+GROUP BY n.narudzba_id, n.datum_narudzbe
+HAVING SUM(sn.kolicina) > 5
+ORDER BY n.datum_narudzbe DESC;
 
-DELIMITER $$
 
-CREATE TRIGGER trg_azuriraj_zalihe_nakon_prodaje
-AFTER INSERT ON stavka_narudzbe
-FOR EACH ROW
-BEGIN
-    UPDATE proizvod 
-    SET kolicina_na_skladistu = kolicina_na_skladistu - NEW.kolicina
-    WHERE proizvod_id = NEW.proizvod_id;
-END$$
+-- Andrej Pucović - 4 upita i 2 pogleda --
 
-DELIMITER ;
+-- Upit 1 -- 
+SELECT 
+    n.narudzba_id AS Sifra_narudzbe,
+    n.datum_narudzbe AS Datum_kupnje,
+    ROUND(SUM(sn.kolicina * sn.cijena_po_komadu), 2) AS Ukupna_vrijednost_narudzbe
+FROM narudzba AS n
+INNER JOIN stavka_narudzbe AS sn ON n.narudzba_id = sn.narudzba_id
+WHERE n.datum_narudzbe >= NOW() - INTERVAL 6 MONTH
+GROUP BY n.narudzba_id, n.datum_narudzbe
+ORDER BY Ukupna_vrijednost_narudzbe DESC
+LIMIT 3;
 
-SELECT kolicina_na_skladistu FROM proizvod WHERE proizvod_id = 3;
 
-INSERT INTO stavka_narudzbe (narudzba_id, proizvod_id, kolicina, cijena_po_komadu) 
-VALUES (2, 3, 5, 4.00);
+-- Upit 2 -- 
+SELECT 
+    k.kupac_id AS Sifra_kupca,
+    CONCAT(k.ime, ' ', k.prezime) AS Kupac,
+    COUNT(r.recenzija_id) AS Broj_recenzija,
+    ROUND(AVG(r.ocjena), 2) AS Prosjecna_ocjena
+FROM recenzija AS r
+RIGHT JOIN kupac AS k ON r.kupac_id = k.kupac_id
+GROUP BY k.kupac_id, k.ime, k.prezime
+ORDER BY Prosjecna_ocjena DESC;
 
-SELECT kolicina_na_skladistu FROM proizvod WHERE proizvod_id = 3;
 
-DELIMITER $$
+-- Upit 3 -- 
+SELECT 
+    k.kategorija_id AS Sifra_kategorije,
+    k.naziv AS Naziv_kategorije,
+    MIN(p.cijena) AS Najniza_cijena_kategorije,
+    MAX(p.cijena) AS Najvisa_cijena_kategorije
+FROM kategorija AS k
+LEFT JOIN proizvod AS p ON k.kategorija_id = p.kategorija_id
+GROUP BY k.kategorija_id, k.naziv
+ORDER BY Najvisa_cijena_kategorije DESC;
 
-CREATE TRIGGER trg_validacija_email_kupca
-BEFORE INSERT ON kupac
-FOR EACH ROW
-BEGIN
-    IF NEW.email NOT LIKE '%@%.%' THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Greška: Unesena e-mail adresa nije u ispravnom formatu!';
-    END IF;
-END$$
 
-DELIMITER ;
+-- Upit 4 --
+SELECT 
+    p.proizvod_id AS Sifra_proizvoda,
+    p.naziv AS Naziv_premium_cokolade,
+    COUNT(sn.narudzba_id) AS Broj_pojavljivanja_u_narudzbama,
+    SUM(sn.kolicina) AS Ukupna_prodana_kolicina_komadi,
+    ROUND(AVG(sn.kolicina), 1) AS Prosjecna_kolicina_po_stavki
+FROM proizvod AS p
+INNER JOIN stavka_narudzbe AS sn ON p.proizvod_id = sn.proizvod_id
+WHERE p.cijena > 4.00 AND p.aktivan = TRUE
+GROUP BY p.proizvod_id, p.naziv
+ORDER BY Ukupna_prodana_kolicina_komadi DESC;
 
-INSERT INTO kupac (ime, prezime, email, lozinka, telefon, aktivan) 
-VALUES ('', 'Korisnik', 'krivi_email_bez_znaka', 'lozinka123', '0919999999', 1);
 
-INSERT INTO kupac (ime, prezime, email, lozinka, telefon, aktivan) 
-VALUES ('', 'Korisnik', 'ispravan.email@gmail.com', 'lozinka123', '0919999999', 1);
+-- Pogled 1 -- 
+CREATE OR REPLACE VIEW v_premium_proizvodi_i_potraznja AS
+SELECT 
+    p.proizvod_id AS Sifra_proizvoda,
+    p.naziv AS Naziv_premium_cokolade,
+    p.cijena AS Cijena_u_eurima,
+    SUM(sn.kolicina) AS Ukupno_prodano_komada
+FROM proizvod AS p
+LEFT JOIN stavka_narudzbe AS sn ON p.proizvod_id = sn.proizvod_id
+WHERE p.cijena > (
+    SELECT AVG(p2.cijena) 
+    FROM proizvod AS p2
+)
+GROUP BY p.proizvod_id, p.naziv, p.cijena
+ORDER BY p.cijena DESC;
 
-SELECT * FROM kupac WHERE email = 'ispravan.email@gmail.com';
+SELECT * FROM v_premium_proizvodi_i_potraznja;
 
-CREATE TRIGGER trg_povecaj_zalihe_nakon_nabave
-AFTER INSERT ON stavka_nabave
-FOR EACH ROW
-BEGIN
-    UPDATE proizvod 
-    SET kolicina_na_skladistu = kolicina_na_skladistu + NEW.kolicina
-    WHERE proizvod_id = NEW.proizvod_id;
-END$$
+SELECT * 
+FROM v_premium_proizvodi_i_potraznja
+WHERE Ukupno_prodano_komada IS NOT NULL;
 
-DELIMITER ;
+SELECT * 
+FROM v_premium_proizvodi_i_potraznja
+WHERE Cijena_u_eurima > 10.00;
 
-SELECT kolicina_na_skladistu FROM proizvod WHERE proizvod_id = 4;
 
-INSERT INTO stavka_nabave (nabava_id, proizvod_id, kolicina, nabavna_cijena) 
-VALUES (1, 4, 50, 2.10);
+-- Pogled 2 -- 
+CREATE OR REPLACE VIEW v_usporedba_proizvoda_i_kategorija AS
+SELECT 
+    p.proizvod_id AS Sifra_proizvoda,
+    p.naziv AS Naziv_proizvoda,
+    k.naziv AS Naziv_kategorije,
+    ROUND(SUM(sn.kolicina * sn.cijena_po_komadu), 2) AS Zarada_proizvoda_EUR,
+    ROUND((
+        SELECT SUM(sn2.kolicina * sn2.cijena_po_komadu)
+        FROM proizvod AS p2
+        INNER JOIN stavka_narudzbe AS sn2 ON p2.proizvod_id = sn2.proizvod_id
+        WHERE p2.kategorija_id = p.kategorija_id
+    ), 2) AS Ukupna_zarada_kategorije_EUR
+FROM proizvod AS p
+INNER JOIN kategorija AS k ON p.kategorija_id = k.kategorija_id
+INNER JOIN stavka_narudzbe AS sn ON p.proizvod_id = sn.proizvod_id
+GROUP BY p.proizvod_id, p.naziv, k.naziv, p.kategorija_id;
 
-SELECT kolicina_na_skladistu FROM proizvod WHERE proizvod_id = 4;
+SELECT * FROM v_usporedba_proizvoda_i_kategorija;
 
+SELECT * 
+FROM v_usporedba_proizvoda_i_kategorija
+WHERE Zarada_proizvoda_EUR > 50.00;
+
+SELECT * 
+FROM v_usporedba_proizvoda_i_kategorija
+WHERE Naziv_kategorije = 'Mliječna čokolada';
+
+
+-- Teo Kupčinovac - 2 pogleda --
+
+-- Pogled 1 -- 
+CREATE OR REPLACE VIEW v_pregled_vrijednosti_narudzbi AS
+SELECT 
+    n.narudzba_id AS Sifra_narudzbe,
+    n.datum_narudzbe AS Datum_kreiranja,
+    CONCAT(k.ime, ' ', k.prezime) AS Kupac,
+    ROUND(SUM(sn.kolicina * sn.cijena_po_komadu), 2) AS Ukupna_vrijednost_EUR
+FROM narudzba AS n
+INNER JOIN kupac AS k ON n.kupac_id = k.kupac_id
+INNER JOIN stavka_narudzbe AS sn ON n.narudzba_id = sn.narudzba_id
+GROUP BY n.narudzba_id, n.datum_narudzbe, k.ime, k.prezime;
+
+SELECT * FROM v_pregled_vrijednosti_narudzbi;
+
+SELECT * 
+FROM v_pregled_vrijednosti_narudzbi
+WHERE Ukupna_vrijednost_EUR > 100.00;
+
+SELECT * 
+FROM v_pregled_vrijednosti_narudzbi
+WHERE Kupac LIKE '%Kovač%';
+
+
+-- Pogled 2 -- 
+CREATE OR REPLACE VIEW v_crm_segmentacija_kupaca AS
+SELECT 
+    k.kupac_id AS Sifra_kupca,
+    CONCAT(k.ime, ' ', k.prezime) AS Kupac,
+    COUNT(DISTINCT n.narudzba_id) AS Ukupno_narudzbi,
+    ROUND(SUM(sn.kolicina * sn.cijena_po_komadu), 2) AS Ukupna_potrosnja_EUR,
+    MAX(n.datum_narudzbe) AS Datum_zadnje_kupnje,
+    CASE 
+        WHEN SUM(sn.kolicina * sn.cijena_po_komadu) > 100.00 THEN 'VIP Kupac'
+        WHEN SUM(sn.kolicina * sn.cijena_po_komadu) BETWEEN 40.00 AND 100.00 THEN 'Lojalan Kupac'
+        ELSE 'Standardni Kupac'
+    END AS Segment_kupca
+FROM kupac AS k
+INNER JOIN narudzba AS n ON k.kupac_id = n.kupac_id
+INNER JOIN stavka_narudzbe AS sn ON n.narudzba_id = sn.narudzba_id
+GROUP BY k.kupac_id, k.ime, k.prezime;
+
+SELECT * FROM v_crm_segmentacija_kupaca;
+
+SELECT * 
+FROM v_crm_segmentacija_kupaca
+WHERE Segment_kupca = 'VIP Kupac';
+
+SELECT * 
+FROM v_crm_segmentacija_kupaca
+ORDER BY Datum_zadnje_kupnje DESC;
+
+
+-- Luka Juroš - 1 upita i 1 pogled --
+
+-- Upit 1 -- 
+SELECT 
+    d.dobavljac_id AS Sifra_dobavljaca,
+    d.naziv AS Naziv_dobavljaca,
+    COUNT(DISTINCT snab.proizvod_id) AS Broj_razlicitih_artikala,
+    MIN(snab.nabavna_cijena) AS Minimalna_nabavna_cijena,
+    MAX(snab.nabavna_cijena) AS Maksimalna_nabavna_cijena
+FROM dobavljac AS d
+LEFT JOIN nabava AS n ON d.dobavljac_id = n.dobavljac_id
+LEFT JOIN stavka_nabave AS snab ON n.nabava_id = snab.nabava_id
+GROUP BY d.dobavljac_id, d.naziv
+ORDER BY Maksimalna_nabavna_cijena DESC, Broj_razlicitih_artikala DESC;
+
+
+-- Pogled 1 -- 
+CREATE OR REPLACE VIEW v_pregled_potrosnje_kupaca AS
+SELECT 
+    k.kupac_id AS Sifra_kupca,
+    CONCAT(k.ime, ' ', k.prezime) AS Kupac,
+    COUNT(DISTINCT n.narudzba_id) AS Ukupno_narudzbi,
+    ROUND(SUM(sn.kolicina * sn.cijena_po_komadu), 2) AS Ukupna_potrosnja_EUR
+FROM kupac AS k
+INNER JOIN narudzba AS n ON k.kupac_id = n.kupac_id
+INNER JOIN stavka_narudzbe AS sn ON n.narudzba_id = sn.narudzba_id
+GROUP BY k.kupac_id, k.ime, k.prezime
+ORDER BY Ukupna_potrosnja_EUR DESC;
+
+SELECT * FROM v_pregled_potrosnje_kupaca;
+
+SELECT * 
+FROM v_pregled_potrosnje_kupaca
+WHERE Ukupna_potrosnja_EUR > 150.00;
+
+SELECT * 
+FROM v_pregled_potrosnje_kupaca
+WHERE Kupac LIKE '%Kovač%';
 

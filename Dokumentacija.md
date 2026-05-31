@@ -12,7 +12,7 @@
 - **Andrej Pucković** (JMBAG: 0246066534)
 - **Danijel Margić** (JMBAG: 0275053078)
 
-video prezentacija: 
+video prezentacija: https://drive.google.com/file/d/1SJfa6vFThCW-2IMpwowPoAAcQcCTYYhJ/view?usp=sharing
 
 github repozitorij: https://github.com/HeadMathematician/baze-projekt
 

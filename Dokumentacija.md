@@ -77,7 +77,7 @@ Prati osnovne podatke o kupcima u sustavu. Relacija **kupac** se sastoji od slje
 
 - **email** – podatak tipa `VARCHAR` ograničen na 100 znakova. Ima ograničenja `NOT NULL` i `UNIQUE`, što znači da svaki kupac mora imati email i da ne mogu postojati dva kupca s istom email adresom.
 
-- **lozinka** – podatak tipa `VARCHAR` ograničen na 255 znakova. Ograničen je s `NOT NULL` (vrijednost je obavezna; tipično se sprema hash lozinke, ne sama lozinka).
+- **lozinka** – podatak tipa `VARCHAR` ograničen na 255 znakova. Ograničen je s `NOT NULL` (vrijednost je obavezna, najbolja praksa je da se sprema hash lozinke, ne sama lozinka).
 
 - **telefon** – podatak tipa `VARCHAR` ograničen na 20 znakova. Nema `NOT NULL` ograničenje, što znači da je unos opcionalan.
 
@@ -154,7 +154,7 @@ CREATE TABLE kategorija (
 
 ### 4.5 Relacija _proizvod_
 
-Srž cijelog kataloga, svaki artikl koji prodajemo ima ovdje svoj zapis. **kategorija_id** je strani ključ s `ON DELETE RESTRICT ON UPDATE CASCADE` koji ga smješta u odgovarajuću kategoriju. **cijena** je tipa `DECIMAL(10,2)` umjesto `FLOAT` jer se radi o novcu, a ograničenje `CHECK (cijena > 0)` osigurava da cijena ne može biti nula ni negativna. **kolicina_na_skladistu** je `NOT NULL DEFAULT 0` s `CHECK (kolicina_na_skladistu >= 0)` koji sprječava negativno stanje zalihe. **SKU** (Stock Keeping Unit) je interna šifra proizvoda koja mora biti jedinstvena (`UNIQUE`). **aktivan** je `BOOLEAN NOT NULL` koji omogućuje tkzv. meko brisanje, kad povučemo proizvod iz prodaje, ne brišemo ga iz baze nego ga samo označimo kao neaktivnog, čime čuvamo povijest. **datum_dodavanja** je `NOT NULL` i automatski se popunjava s `CURRENT_TIMESTAMP` pri unosu.
+Srž cijelog kataloga, svaki artikl koji prodajemo ima ovdje svoj zapis. **kategorija_id** je strani ključ s `ON DELETE RESTRICT ON UPDATE CASCADE` koji ga smješta u odgovarajuću kategoriju. **cijena** je tipa `DECIMAL(10,2)` umjesto `FLOAT` jer se radi o novcu, a ograničenje `CHECK (cijena > 0)` osigurava da cijena ne može biti nula ni negativna, tj. nenegativna je. **kolicina_na_skladistu** je `NOT NULL DEFAULT 0` s `CHECK (kolicina_na_skladistu >= 0)` koji sprječava negativno stanje zalihe. **SKU** (Stock Keeping Unit) je interna šifra proizvoda koja mora biti jedinstvena (`UNIQUE`). **aktivan** je `BOOLEAN NOT NULL` koji omogućuje tkzv. meko brisanje, kad povučemo proizvod iz prodaje, ne brišemo ga iz baze nego ga samo označimo kao neaktivnog, čime čuvamo povijest. **datum_dodavanja** je `NOT NULL` i automatski se popunjava s `CURRENT_TIMESTAMP` pri unosu.
 
 ```sql
 CREATE TABLE proizvod (
@@ -192,7 +192,7 @@ CREATE TABLE narudzba (
 
 ### 4.7 Relacija _stavka_narudzbe_
 
-Budući da jedna narudžba može sadržavati više različitih proizvoda, svaki redak u košarici postaje zasebna stavka. Primarni ključ je **stavka_narudzbe_id**. **narudzba_id** i **proizvod_id** su strani ključevi koji je vežu uz narudžbu i konkretni proizvod. **kolicina** je obavezna s `CHECK (kolicina > 0)`. **cijena_po_komadu** sprema se u trenutku narudžbe s `CHECK (cijena_po_komadu > 0)`, a ne uzima se direktno iz tablice _proizvod_ — namjerno, jer bi naknadna promjena cijene utjecala i na stare narudžbe. Složeno ograničenje `UNIQUE (narudzba_id, proizvod_id)` sprječava da se isti proizvod doda dva puta u istu narudžbu. FK za narudžbu ima `ON DELETE CASCADE`, a FK za proizvod ima `ON DELETE RESTRICT`.
+Budući da jedna narudžba može sadržavati više različitih proizvoda, svaki redak u košarici postaje zasebna stavka. Primarni ključ je **stavka_narudzbe_id**. **narudzba_id** i **proizvod_id** su strani ključevi koji je vežu uz narudžbu i konkretni proizvod. **kolicina** je obavezna s `CHECK (kolicina > 0)`. **cijena_po_komadu** sprema se u trenutku narudžbe s `CHECK (cijena_po_komadu > 0)`, a ne uzima se direktno iz tablice _proizvod_ namjerno, jer bi naknadna promjena cijene utjecala i na stare narudžbe. Složeno ograničenje `UNIQUE (narudzba_id, proizvod_id)` sprječava da se isti proizvod doda dva puta u istu narudžbu. FK za narudžbu ima `ON DELETE CASCADE`, a FK za proizvod ima `ON DELETE RESTRICT`.
 
 ```sql
 CREATE TABLE stavka_narudzbe (
@@ -213,7 +213,7 @@ CREATE TABLE stavka_narudzbe (
 
 ### 4.8 Relacija _placanje_
 
-Bilježi detalje transakcije za svaku narudžbu. **narudzba_id** je strani ključ s `NOT NULL UNIQUE`, čime se osigurava veza 1:1 između plaćanja i narudžbe — svaka narudžba ima točno jedno plaćanje. **nacin_placanja** je `NOT NULL` i opisuje kako je kupac platio (npr. "Kartica", "PayPal", "Pouzećem"). **status_placanja** je `NOT NULL DEFAULT 'u_obradi'` i prati je li plaćanje uspješno. **datum_placanja** je `NOT NULL DEFAULT CURRENT_TIMESTAMP` i automatski bilježi trenutak transakcije. FK ima `ON DELETE RESTRICT` koji sprječava brisanje narudžbe dok postoji plaćanje.
+Bilježi detalje transakcije za svaku narudžbu. **narudzba_id** je strani ključ s `NOT NULL UNIQUE`, čime se osigurava veza 1:1 između plaćanja i narudžbe, svaka narudžba ima točno jedno plaćanje. **nacin_placanja** je `NOT NULL` i opisuje kako je kupac platio (npr. "Kartica", "PayPal", "Pouzećem"). **status_placanja** je `NOT NULL DEFAULT 'u_obradi'` i prati je li plaćanje uspješno. **datum_placanja** je `NOT NULL DEFAULT CURRENT_TIMESTAMP` i automatski bilježi trenutak transakcije. FK ima `ON DELETE RESTRICT` koji sprječava brisanje narudžbe dok postoji plaćanje.
 
 ```sql
 CREATE TABLE placanje (
@@ -230,7 +230,7 @@ CREATE TABLE placanje (
 
 ### 4.9 Relacija _dostava_
 
-Nakon što je narudžba plaćena, paket se predaje kurirskoj službi. **narudzba_id** je `NOT NULL UNIQUE`, čime se osigurava veza 1:1 između dostave i narudžbe. **kurirska_sluzba** je `NOT NULL`. **broj_posiljke** (tracking broj) je opcionalan. **status_dostave** je `NOT NULL DEFAULT 'priprema'` i prati fazu isporuke. **procijenjeni_datum** i **stvarni_datum** su oba tipa `DATE` — uspoređivanjem tih dvaju polja možemo pratiti kasni li kurirska služba. FK ima `ON DELETE RESTRICT ON UPDATE CASCADE`.
+Nakon što je narudžba plaćena, paket se predaje kurirskoj službi. **narudzba_id** je `NOT NULL UNIQUE`, čime se osigurava veza 1:1 između dostave i narudžbe. **kurirska_sluzba** je `NOT NULL`. **broj_posiljke** (tracking broj) je opcionalan. **status_dostave** je `NOT NULL DEFAULT 'priprema'` i prati fazu isporuke. **procijenjeni_datum** i **stvarni_datum** su oba tipa `DATE`, uspoređivanjem tih dvaju polja možemo pratiti kasni li kurirska služba. FK ima `ON DELETE RESTRICT ON UPDATE CASCADE`.
 
 ```sql
 CREATE TABLE dostava (

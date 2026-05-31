@@ -7,7 +7,7 @@
 ### 1. godina prijediplomskog sveučilišnog studija informatike
 
 - **Luka Juroš** (JMBAG: 0016108283)
-- **Teo Kupčinovac** (JMBAG: )
+- **Teo Kupčinovac** (JMBAG: 1311029868)
 - **Luka Wrana** (JMBAG: 0303128892)
 - **Andrej Pucković** (JMBAG: 0246066534)
 - **Danijel Margić** (JMBAG: 0275053078)

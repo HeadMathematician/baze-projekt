@@ -6,7 +6,7 @@
 
 ### 1. godina prijediplomskog sveučilišnog studija informatike
 
-- **Luka Juroš** (JMBAG: )
+- **Luka Juroš** (JMBAG: 0016108283)
 - **Teo Kupčinovac** (JMBAG: )
 - **Luka Wrana** (JMBAG: 0303128892)
 - **Andrej Pucković** (JMBAG: 0246066534)
@@ -19,15 +19,15 @@ github repozitorij: https://github.com/HeadMathematician/baze-projekt
 
 &nbsp;
 
-## 1. Uvod (Luka Juroš)
+## 1. Uvod
 
-U sklopu kolegija Baze podataka I zadatak projektnog rada bio je osmisliti, dizajnirati i implementirati relacijsku bazu podataka koja modelira stvarni poslovni proces koristeći znanja obrađena tijekom semestra. Projekt je obuhvaćao analizu problema, modeliranje podataka pomoću ER i EER dijagrama, implementaciju baze podataka u MySQL sustavu te izradu SQL upita, pogleda i dokumentacije.
+U sklopu kolegija Baze podataka I zadatak projektnog rada bio je osmisliti, dizajnirati i implementirati relacijsku bazu podataka koja modelira stvarni poslovni proces koristeći znanja obrađena tijekom semestra. Projekt je obuhvaćao analizu problema, modeliranje podataka pomoću ER i EER dijagrama, implementaciju baze podataka u MySQL sustavu te izradu SQL upita i pogleda.
   
 
 &nbsp;
 
 
-## 2. Opis projekta (Luka Juroš)
+## 2. Opis poslovnog procesa
 
 Tema našeg projekta je sustav za upravljanje e-commerce trgovinom za prodaju čokolada. Projekt je podijeljen u nekoliko glavnih faza razvoja baze podataka:
 
@@ -38,76 +38,304 @@ Tema našeg projekta je sustav za upravljanje e-commerce trgovinom za prodaju č
 - **Unos i generiranje podataka** – popunjavanje baze smislenim testnim podacima koji simuliraju stvarno poslovanje webshop sustava za prodaju čokolada.
   
 - **Izrada SQL upita i pogleda** – razvoj složenih SQL upita i VIEW pogleda za dohvat i analizu podataka iz baze.
-  
-- **Implementacija triggera** – automatizacija određenih procesa i održavanje konzistentnosti podataka unutar sustava.
 
-Projekt je razvijan korištenjem više alata i tehnologija. Lucidchart je korišten za modeliranje ER dijagrama, MySQL Workbench za implementaciju baze i generiranje EER dijagrama, GitHub za verzioniranje i dijeljenje koda, a Discord za komunikaciju unutar tima. ChatGPT korišten je kao pomoć pri generiranju dijela testnih podataka.
+Projekt je razvijan korištenjem više alata i tehnologija. Draw.io i MySQL Workbench su korišteni za modeliranje ER dijagrama i EER dijagrama, MySQL Workbench za implementaciju baze, GitHub za verzioniranje i dijeljenje koda, a Discord za komunikaciju unutar tima. ChatGPT korišten je kao pomoć pri generiranju dijela testnih podataka.
 
 
 &nbsp;
+
 
 ## 3. Konceptualini dizajn (Luka Juroš)
 
-#### 3.1 Definiranje poslovnog procesa (ER + EER Dijagram)
-
-Konceptualni dizajn baze podataka predstavlja prvi i najvažniji korakau razvoju sustava baze podataka. U ovoj fazi definira se poslovni proces, identificiraju se svi važni entiteti te njihovi međusobni odnosi. Konceptuali dizaj je najvažniji korak jer definira strukturu cijelog projekta i svaki sljedeći korak ovisi o njemu. Za modeliranje sustava korišteni su ER (Entity Relationship) i EER (Enhanced Entity Relationship) dijagrami. ER dijagram omogućuje lakše razumijevanje strukture baze podataka prije same implementacije, dok EER dijagram daje detaljniji prikaz sustava koji je prikladan za implementaciju u relacijskim sustavima baza podataka poput MySQL-a.
-
-&nbsp;
-
-### 3.2 Entity Relationship (ER) dijagram
-
-U nastavku je opisan ER dijagram sustava za upravljanje e-trgovinom. Dijagram prikazuje 12 entiteta i njihove međusobne veze s pripadajućim kardinalnostima. Svaka veza je opisana u kontekstu poslovnog procesa e-trgovine.
-
-Skup entiteta `KUPAC` povezan je sa skupom entiteta `ADRESA` vezom „ima", jedan naprema više (1:N), jer jedan kupac može imati više adresa (npr. adresu stanovanja i adresu za dostavu), dok se svaka adresa odnosi na točno jednog kupca.
-
-Skup entiteta `KUPAC` povezan je sa skupom entiteta `NARUDŽBA` vezom „kreira", jedan naprema više (1:N), jer jedan kupac može kreirati više narudžbi tijekom vremena, dok se svaka narudžba odnosi na točno jednog kupca koji ju je kreirao.
-
-Skup entiteta `KUPAC` povezan je sa skupom entiteta `RECENZIJA` vezom „piše", jedan naprema više (1:N), jer jedan kupac može napisati više recenzija za različite proizvode, dok svaku recenziju piše točno jedan kupac.
-
-Skup entiteta `KATEGORIJA` povezan je sa skupom entiteta `PROIZVOD` vezom „pripada", jedan naprema više (1:N), jer jedna kategorija može sadržavati više proizvoda, dok svaki proizvod pripada točno jednoj kategoriji.
-
-Skup entiteta `KATEGORIJA` povezan je sam sa sobom (rekurzivna veza) vezom „nadkategorija", jedan naprema više (1:N), jer jedna kategorija može biti nadkategorija za više podkategorija (npr. kategorija „Elektronika" sadrži podkategorije „Mobiteli", „Računala" i „Audio"), dok svaka podkategorija ima najviše jednu nadkategoriju. Kategorije na vrhu hijerarhije (korijenske kategorije) nemaju nadkategoriju.
-
-Skup entiteta `PROIZVOD` povezan je sa skupom entiteta `RECENZIJA` vezom „ocjenjuje", jedan naprema više (1:N), jer jedan proizvod može imati više recenzija od različitih kupaca, dok se svaka recenzija odnosi na točno jedan proizvod. Entitet `RECENZIJA` također predstavlja razrješenje više-naprema-više (M:N) veze između entiteta KUPAC i `PROIZVOD`, jer jedan kupac može ocijeniti više proizvoda, a jedan proizvod može biti ocijenjen od više kupaca.
-
-Skup entiteta `NARUDŽBA` povezan je sa skupom entiteta `STAVKA_NARUDŽBE` vezom „sadrži", jedan naprema više (1:N), jer jedna narudžba može sadržavati više stavki (različitih proizvoda), dok se svaka stavka narudžbe odnosi na točno jednu narudžbu.
-
-Skup entiteta `PROIZVOD` povezan je sa skupom entiteta `STAVKA_NARUDŽBE` vezom „u_stavci", jedan naprema više (1:N), jer jedan proizvod može biti stavka u više različitih narudžbi, dok se svaka stavka narudžbe odnosi na točno jedan proizvod. Entitet `STAVKA_NARUDŽBE` predstavlja razrješenje više-naprema-više (M:N) veze između entiteta NARUDŽBA i `PROIZVOD`, jer jedna narudžba može sadržavati više proizvoda, a jedan proizvod može se nalaziti u više narudžbi.
-
-Skup entiteta `NARUDŽBA` povezan je sa skupom entiteta `PLAĆANJE` vezom „placa_se", jedan naprema jedan (1:1), jer se svaka narudžba plaća točno jednim plaćanjem, dok se svako plaćanje odnosi na točno jednu narudžbu.
-
-Skup entiteta `NARUDŽBA` povezan je sa skupom entiteta `DOSTAVA` vezom „dostavlja_se", jedan naprema jedan (1:1), jer se svaka narudžba dostavlja točno jednom dostavom, dok se svaka dostava odnosi na točno jednu narudžbu.
-
-Skup entiteta `NARUDŽBA` povezan je sa skupom entiteta ADRESA vezom „na_adresu", više naprema jedan (N:1), jer se više narudžbi može dostaviti na istu adresu, dok se svaka narudžba dostavlja na točno jednu adresu kupca.
-
-Skup entiteta `DOBAVLJAČ` povezan je sa skupom entiteta `NABAVA` vezom „opskrbljuje", jedan naprema više (1:N), jer jedan dobavljač može isporučiti više nabavnih narudžbi, dok se svaka nabavna narudžba odnosi na točno jednog dobavljača.
-
-Skup entiteta `NABAVA` povezan je sa skupom entiteta `STAVKA_NABAVE` vezom „sadrži", jedan naprema više (1:N), jer jedna nabavna narudžba može sadržavati više stavki (različitih proizvoda), dok se svaka stavka nabave odnosi na točno jednu nabavnu narudžbu.
-
-Skup entiteta `PROIZVOD` povezan je sa skupom entiteta `STAVKA_NABAVE` vezom „nabavlja_se", jedan naprema više (1:N), jer se jedan proizvod može nabavljati više puta kroz različite nabavne narudžbe, dok se svaka stavka nabave odnosi na točno jedan proizvod. Entitet `STAVKA_NABAVE` predstavlja razrješenje više-naprema-više (M:N) veze između entiteta `NABAVA` i `PROIZVOD`, jer jedna nabavna narudžba može uključivati više proizvoda, a jedan proizvod može se nabavljati od više dobavljača kroz više nabavnih narudžbi.
-
-### Pregled kardinalnosti
-
-U sustavu su zastupljene sve osnovne vrste kardinalnosti:
-
-**Veze jedan naprema jedan (1:1):** NARUDŽBA ↔ PLAĆANJE, NARUDŽBA ↔ DOSTAVA
-
-**Veze jedan naprema više (1:N):** KUPAC → ADRESA, KUPAC → NARUDŽBA, KUPAC → RECENZIJA, KATEGORIJA → PROIZVOD, KATEGORIJA → KATEGORIJA (rekurzivna), DOBAVLJAČ → NABAVA, NARUDŽBA → STAVKA_NARUDŽBE, NABAVA → STAVKA_NABAVE
-
-**Razriješene veze više naprema više (M:N):** NARUDŽBA ↔ PROIZVOD (preko STAVKA_NARUDŽBE), NABAVA ↔ PROIZVOD (preko STAVKA_NABAVE), KUPAC ↔ PROIZVOD (preko RECENZIJA)
-
 ![Slika 1: ER dijagram](ER_dijagram.png)
 
+Sustav modelira cjelokupan poslovni proces e-trgovine — od registracije kupaca, kataloga proizvoda i naručivanja, preko plaćanja i dostave, do nabave robe od dobavljača i recenziranja proizvoda. Baza podataka sastoji se od 12 povezanih relacija koje pokrivaju tri glavna segmenta poslovanja: prodaju (kupci, narudžbe), logistiku (dostava, plaćanje) i opskrbu (dobavljači, nabava).
+
+
+
 
 &nbsp;
 
 
-### 3.3 Enhanced Entity–Relationship (EER) dijagram (MySQL Workbench)
+### 3.1 Opis entiteta i atributa
 
-EER dijagram izrađen je pomoću alata MySQL Workbench te predstavlja detaljniju i tehnički precizniju verziju ER dijagrama. Dok ER dijagram služi za prikaz osnovnih entiteta i njihovih odnosa, EER dijagram prikazuje stvarnu strukturu baze podataka koja se koristi pri implementaciji u MySQL sustavu. U dijagramu su definirane sve relacije, atributi, primarni i strani ključevi te ograničenja integriteta podataka. Posebna pažnja posvećena je pravilnom povezivanju tablica i definiranju kardinalnosti odnosa između entiteta kako bi se osigurala konzistentnost podataka unutar sustava. EER dijagram također prikazuje pomoćne relacije poput `STAVKA_NARUDŽBE`, `STAVKA_NABAVE` i `RECENZIJA` koje služe za razrješavanje više naprema više (M:N) odnosa između glavnih entiteta baze podataka. Osim toga, prikazana je i hijerarhijska struktura kategorija pomoću samoreferencijalne veze unutar relacije `KATEGORIJA`.
+![Slika 1: EER dijagram](EER_dijagram.png)
+
+### KUPAC
+Pohranjuje podatke o registriranim korisnicima e-trgovine. Svaki kupac ima jedinstvenu email adresu koja služi kao identifikator za prijavu. Lozinka se pohranjuje u hashiranom obliku. Atribut `aktivan` omogućuje deaktivaciju korisničkog računa bez brisanja podataka, čime se čuva povijest narudžbi.
+
+| Atribut | Tip | Ograničenja | Opis |
+|---------|-----|-------------|------|
+| kupac_id | `INT` | `PK`, `AUTO_INCREMENT` | Jedinstveni identifikator kupca |
+| ime | `VARCHAR(50)` | `NOT NULL` | Ime kupca |
+| prezime | `VARCHAR(50)` | `NOT NULL` | Prezime kupca |
+| email | `VARCHAR(100)` | `NOT NULL`, `UNIQUE` | Email adresa za prijavu |
+| lozinka | `VARCHAR(255)` | `NOT NULL` | Hashirana lozinka |
+| telefon | `VARCHAR(20)` | `NULL` | Kontakt telefon (opcionalan) |
+| datum_registracije | `DATE` | `NOT NULL`, `DEFAULT` | Datum kreiranja računa |
+| aktivan | `BOOLEAN` | `NOT NULL`, `DEFAULT TRUE` | Je li račun aktivan |
+
+&nbsp;
+
+### ADRESA
+Pohranjuje adrese kupaca. Kupac može imati više adresa (npr. kućna adresa i poslovna adresa) te odabrati jednu kao glavnu adresu za dostavu.
+
+| Atribut | Tip | Ograničenja | Opis |
+|---------|-----|-------------|------|
+| adresa_id | `INT` | `PK`, `AUTO_INCREMENT` | Jedinstveni identifikator adrese |
+| kupac_id | `INT` | `FK`, `NOT NULL` | Referenca na kupca |
+| ulica_i_broj | `VARCHAR(100)` | `NOT NULL` | Naziv ulice i kućni broj |
+| grad | `VARCHAR(50)` | `NOT NULL` | Naziv grada |
+| postanski_broj | `VARCHAR(10)` | `NOT NULL` | Poštanski broj |
+| drzava | `VARCHAR(50)` | `NOT NULL`, `DEFAULT 'Hrvatska'` | Država |
+| glavna_adresa | `BOOLEAN` | `NOT NULL`, `DEFAULT FALSE` | Je li ovo glavna adresa kupca |
+
+&nbsp;
+
+### KATEGORIJA
+Pohranjuje kategorije proizvoda (npr. Elektronika, Odjeća, Sport). Služi za organizaciju kataloga proizvoda kako bi kupci lakše pronašli željene artikle.
+
+| Atribut | Tip | Ograničenja | Opis |
+|---------|-----|-------------|------|
+| kategorija_id | `INT` | `PK`, `AUTO_INCREMENT` | Jedinstveni identifikator kategorije |
+| naziv | `VARCHAR(100)` | `NOT NULL` | Naziv kategorije |
+| opis | `TEXT` | `NULL` | Opcionalni opis kategorije |
+
+&nbsp;
+
+### PROIZVOD
+Pohranjuje artikle u ponudi e-trgovine. Svaki proizvod pripada jednoj kategoriji, ima jedinstveni SKU kod za praćenje inventara, trenutnu prodajnu cijenu i količinu na skladištu. Atribut `aktivan` omogućuje skrivanje proizvoda iz ponude bez brisanja.
+
+| Atribut | Tip | Ograničenja | Opis |
+|---------|-----|-------------|------|
+| proizvod_id | `INT` | `PK`, `AUTO_INCREMENT` | Jedinstveni identifikator proizvoda |
+| kategorija_id | `INT` | `FK`,`NOT NULL` | Referenca na kategoriju |
+| naziv | `VARCHAR(150)` | `NOT NULL` | Naziv proizvoda |
+| opis | `TEXT` | `NULL` | Detaljni opis proizvoda |
+| cijena | `DECIMAL(10,2)` | `NOT NULL`, `CHECK > 0 `| Trenutna prodajna cijena |
+| kolicina_na_skladistu | `INT` | `NOT NULL`, `DEFAULT 0`, `CHECK >= 0` | Raspoloživa količina |
+| SKU | `VARCHAR(50)` | `UNIQUE` | Jedinstveni kod za inventar |
+| aktivan | `BOOLEAN` | `NOT NULL`, `DEFAULT TRUE` | Je li proizvod vidljiv u ponudi |
+| datum_dodavanja | `DATETIME` | `NOT NULL`, `DEFAULT` | Datum dodavanja u katalog |
+
+&nbsp;
+
+### NARUDZBA
+Pohranjuje narudžbe kupaca. Svaka narudžba pripada jednom kupcu. Ima status koji prati tijek obrade (od "na_cekanju" do "dostavljena" ili "otkazana") i zasebnu cijenu dostave.
+
+| Atribut | Tip | Ograničenja | Opis |
+|---------|-----|-------------|------|
+| narudzba_id | `INT` | `PK`, `AUTO_INCREMENT` | Jedinstveni identifikator narudžbe |
+| kupac_id | `INT` | `FK`,`NOT NULL` | Referenca na kupca koji je naručio |
+| datum_narudzbe | `DATETIME` | `NOT NULL`, `DEFAULT` | Datum i vrijeme kreiranja narudžbe |
+| status_narudzbe | `VARCHAR(50)` | `NOT NULL`, `DEFAULT 'na_cekanju'` | Trenutni status obrade |
+| cijena_dostave | `DECIMAL(10,2)` | `NOT NULL`, `DEFAULT 0.00` | Trošak dostave |
+
+&nbsp;
+
+### STAVKA_NARUDZBE
+Pohranjuje pojedinačne stavke unutar narudžbe — koji proizvod je naručen, u kojoj količini i po kojoj cijeni. Ova tablica razrješava višeznačnu (M:N) vezu između narudžbe i proizvoda. Atribut `cijena_po_komadu` bilježi cijenu proizvoda u trenutku kupnje.
+
+| Atribut | Tip | Ograničenja | Opis |
+|---------|-----|-------------|------|
+| stavka_narudzbe_id | `INT` | `PK`, `AUTO_INCREMENT` | Jedinstveni identifikator stavke |
+| narudzba_id | `INT` | `FK`, `NOT NULL` | Referenca na narudžbu |
+| proizvod_id | `INT` | `FK`, `NOT NULL` | Referenca na proizvod |
+| kolicina | `INT` | `NOT NULL`, `CHECK > 0` | Naručena količina |
+| cijena_po_komadu | `DECIMAL(10,2)` | `NOT NULL` | Cijena u trenutku kupnje |
+
+Dodatno ograničenje: UNIQUE (narudzba_id, proizvod_id) — isti proizvod ne može biti dvaput u istoj narudžbi.
+
+&nbsp;
+
+### PLACANJE
+Pohranjuje podatke o plaćanju svake narudžbe. Svaka narudžba ima točno jedno plaćanje (1:1 veza osigurana UNIQUE ograničenjem na narudzba_id).
+
+| Atribut | Tip | Ograničenja | Opis |
+|---------|-----|-------------|------|
+| placanje_id | `INT` | `PK`, `AUTO_INCREMENT` | Jedinstveni identifikator plaćanja |
+| narudzba_id | `INT` | `FK`, `NOT NULL`, `UNIQUE` | Referenca na narudžbu (1:1) |
+| nacin_placanja | `VARCHAR(50)` | `NOT NULL` | Način plaćanja (kartica, pouzeće...) |
+| status_placanja | `VARCHAR(50)` | `NOT NULL`, `DEFAULT 'u_obradi'` | Status transakcije |
+| datum_placanja | `DATETIME` | `NOT NULL`, `DEFAULT` | Datum izvršenja plaćanja |
+
+&nbsp;
+
+### DOSTAVA
+Pohranjuje podatke o dostavi svake narudžbe. Svaka narudžba ima točno jednu dostavu (1:1 veza osigurana UNIQUE ograničenjem na narudzba_id). Prati kurirsku službu, broj pošiljke te procijenjeni i stvarni datum dostave.
+
+| Atribut | Tip | Ograničenja | Opis |
+|---------|-----|-------------|------|
+| dostava_id | `INT` | `PK`, `AUTO_INCREMENT` | Jedinstveni identifikator dostave |
+| narudzba_id | `INT` | `FK`, `NOT NULL`, `UNIQUE` | Referenca na narudžbu (1:1) |
+| kurirska_sluzba | `VARCHAR(100)` | `NOT NULL` | Naziv kurirske službe |
+| broj_posiljke | `VARCHAR(50)` | `NULL` | Broj za praćenje pošiljke |
+| status_dostave |` VARCHAR(50)` | `NOT NULL`, `DEFAULT 'priprema'` | Trenutni status dostave |
+| procijenjeni_datum | `DATE` | `NULL` | Procijenjeni datum dostave |
+| stvarni_datum | `DATE` | `NULL` | Stvarni datum dostave |
+
+&nbsp;
+
+### DOBAVLJAC
+Pohranjuje podatke o dobavljačima od kojih e-trgovina nabavlja robu. Svaki dobavljač ima kontakt osobu za komunikaciju i jedinstvenu email adresu.
+
+| Atribut | Tip | Ograničenja | Opis |
+|---------|-----|-------------|------|
+| dobavljac_id | `INT` | `PK`, `AUTO_INCREMENT` | Jedinstveni identifikator dobavljača |
+| naziv | `VARCHAR(150)` | `NOT NULL` | Naziv tvrtke dobavljača |
+| kontakt_osoba | `VARCHAR(100)` | `NULL` | Ime kontakt osobe |
+| email | `VARCHAR(100)` | `NOT NULL`, `UNIQUE` | Email dobavljača |
+| telefon | `VARCHAR(20)` | `NULL` | Kontakt telefon |
+| adresa | `VARCHAR(200)` | `NULL` | Adresa dobavljača |
+
+&nbsp;
+
+### NABAVA
+Pohranjuje nabavne narudžbe prema dobavljačima. Kad e-trgovini ponestane robe, kreira nabavnu narudžbu prema dobavljaču. Prati se status nabave od narudžbe do zaprimanja robe na skladište.
+
+| Atribut | Tip | Ograničenja | Opis |
+|---------|-----|-------------|------|
+| nabava_id | `INT` | `PK`, `AUTO_INCREMENT` | Jedinstveni identifikator nabave |
+| dobavljac_id | `INT` | `FK`, `NOT NULL` | Referenca na dobavljača |
+| datum_nabave | `DATETIME` | `NOT NULL`, `DEFAULT` | Datum kreiranja nabavne narudžbe |
+| status_nabave | `VARCHAR(50)` | `NOT NULL`, `DEFAULT 'narudzeno'` | Status nabavne narudžbe |
+
+&nbsp;
+
+### STAVKA_NABAVE
+Pohranjuje pojedinačne stavke unutar nabavne narudžbe — koji proizvod se nabavlja, u kojoj količini i po kojoj nabavnoj cijeni. Razrješava M:N vezu između nabave i proizvoda.
+
+| Atribut | Tip | Ograničenja | Opis |
+|---------|-----|-------------|------|
+| stavka_nabave_id | `INT` | `PK`, `AUTO_INCREMENT` | Jedinstveni identifikator stavke |
+| nabava_id | `INT` | `FK`, `NOT NULL` | Referenca na nabavu |
+| proizvod_id | `INT` | `FK`, `NOT NULL` | Referenca na proizvod |
+| kolicina | `INT` | `NOT NULL`, `CHECK > 0` | Naručena količina |
+| nabavna_cijena | `DECIMAL(10,2)` | `NOT NULL`, `CHECK > 0` | Cijena po komadu od dobavljača |
+
+Dodatno ograničenje: UNIQUE (nabava_id, proizvod_id) — isti proizvod ne može biti dvaput u istoj nabavi.
+
+&nbsp;
+
+### RECENZIJA
+Pohranjuje ocjene i komentare kupaca na kupljene proizvode. Razrješava M:N vezu između kupca i proizvoda. Ocjena je ograničena na raspon 1-5.
+
+| Atribut | Tip | Ograničenja | Opis |
+|---------|-----|-------------|------|
+| recenzija_id | `INT` | `PK`, `AUTO_INCREMENT` | Jedinstveni identifikator recenzije |
+| kupac_id | `INT` | `FK`, `NOT NULL` | Referenca na kupca koji piše recenziju |
+| proizvod_id | `INT` | `FK`, `NOT NULL` | Referenca na ocijenjeni proizvod |
+| ocjena | `TINYINT` | `NOT NULL`, `CHECK 1-5` | Ocjena od 1 do 5 |
+| komentar | `TEXT` | `NULL` | Tekstualni komentar (opcionalan) |
+| datum_recenzije | `DATETIME` | `NOT NULL`, `DEFAULT` | Datum pisanja recenzije |
+
+Dodatno ograničenje: UNIQUE (kupac_id, proizvod_id) — jedan kupac može dati samo jednu recenziju po proizvodu.
+
+---
+
+&nbsp;
+
+### 3.2 Opis veza između entiteta
+
+| # | Veza | Entiteti | Kardinalnost |
+|---|------|----------|-------------|
+| 1 | IMA | `KUPAC` → `ADRESA` | 1:N |
+| 2 | KREIRA | `KUPAC` → `NARUDZBA` | 1:N |
+| 3 | PISE | `KUPAC` → `RECENZIJA` | 1:N |
+| 4 | PRIPADA | `KATEGORIJA` → `PROIZVOD` | 1:N |
+| 5 | OCJENJUJE | `PROIZVOD` → `RECENZIJA` | 1:N |
+| 6 | SADRZI | `NARUDZBA` → `STAVKA_NARUDZBE` | 1:N |
+| 7 | U STAVCI | `PROIZVOD` → `STAVKA_NARUDZBE` | 1:N |
+| 8 | PLACA SE | `NARUDZBA` → `PLACANJE` | 1:1 |
+| 9 | DOSTAVLJA SE | `NARUDZBA` → `DOSTAVA` | 1:1 |
+| 10 | OPSKRBLJUJE | `DOBAVLJAC` → `NABAVA` | 1:N |
+| 11 | SADRZI | `NABAVA` → `STAVKA_NABAVE` | 1:N |
+| 12 | NABAVLJA SE | `PROIZVOD` → `STAVKA_NABAVE` | 1:N |
+
+### Detaljan opis veza
+
+- `IMA (KUPAC 1:N ADRESA)` — Jedan kupac može imati više adresa, dok se svaka adresa odnosi na točno jednog kupca.
+
+- `KREIRA (KUPAC 1:N NARUDZBA)` — Jedan kupac može kreirati više narudžbi tijekom vremena, dok se svaka narudžba odnosi na točno jednog kupca koji ju je kreirao.
+
+- `PISE (KUPAC 1:N RECENZIJA)` — Jedan kupac može napisati više recenzija za različite proizvode, dok svaku recenziju piše točno jedan kupac.
+
+- `PRIPADA (KATEGORIJA 1:N PROIZVOD)` — Jedna kategorija može sadržavati više proizvoda, dok svaki proizvod pripada točno jednoj kategoriji.
+
+- `OCJENJUJE (PROIZVOD 1:N RECENZIJA)` — Jedan proizvod može imati više recenzija od različitih kupaca, dok se svaka recenzija odnosi na točno jedan proizvod.
+
+- `SADRZI (NARUDZBA 1:N STAVKA_NARUDZBE)` — Jedna narudžba može sadržavati više stavki, dok se svaka stavka odnosi na točno jednu narudžbu.
+
+- `U STAVCI (PROIZVOD 1:N STAVKA_NARUDZBE)` — Jedan proizvod može se pojaviti u stavkama više različitih narudžbi, dok se svaka stavka odnosi na točno jedan proizvod.
+
+- `PLACA SE (NARUDZBA 1:1 PLACANJE)` — Svaka narudžba ima točno jedno plaćanje i svako plaćanje se odnosi na točno jednu narudžbu.
+
+- `DOSTAVLJA SE (NARUDZBA 1:1 DOSTAVA)` — Svaka narudžba ima točno jednu dostavu i svaka dostava se odnosi na točno jednu narudžbu.
+
+- `OPSKRBLJUJE (DOBAVLJAC 1:N NABAVA)` — Jedan dobavljač može primiti više nabavnih narudžbi, dok se svaka nabavna narudžba odnosi na točno jednog dobavljača.
+
+- `SADRZI (NABAVA 1:N STAVKA_NABAVE)` — Jedna nabavna narudžba može sadržavati više stavki, dok se svaka stavka odnosi na točno jednu nabavu.
+
+- `NABAVLJA SE (PROIZVOD 1:N STAVKA_NABAVE)` — Jedan proizvod može se nabavljati kroz više različitih nabavnih narudžbi, dok se svaka stavka nabave odnosi na točno jedan proizvod.
 
 
-![Slika 2: EER dijagram](EER_dijagram.png)
+&nbsp;
+
+
+### 3.3 Pregled kardinalnosti
+
+#### Veze 1:1 (jedan naprema jedan)
+- NARUDZBA ↔ PLACANJE — osigurano s UNIQUE(narudzba_id)
+- NARUDZBA ↔ DOSTAVA — osigurano s UNIQUE(narudzba_id)
+
+#### Veze 1:N (jedan naprema više)
+- `KUPAC` → `ADRESA`
+- `KUPAC` → `NARUDZBA`
+- `KUPAC` → `RECENZIJA`
+- `KATEGORIJA` → `PROIZVOD`
+- `PROIZVOD` → `RECENZIJA`
+- `NARUDZBA` → `STAVKA_NARUDZBE`
+- `PROIZVOD` → `STAVKA_NARUDZBE`
+- `DOBAVLJAC` → `NABAVA`
+- `NABAVA` → `STAVKA_NABAVE`
+- `PROIZVOD` → `STAVKA_NABAVE`
+
+#### Razriješene veze M:N (više naprema više)
+- `NARUDZBA` ↔ `PROIZVOD` — razriješeno preko `STAVKA_NARUDZBE`
+- `NABAVA` ↔ `PROIZVOD` — razriješeno preko `STAVKA_NABAVE`
+- `KUPAC` ↔ `PROIZVOD` — razriješeno preko `RECENZIJA`
+
+---
+
+&nbsp;
+
+### 3.4 Pregled poslovnih pravila i ograničenja
+
+| Tablica | FK referenca | ON DELETE | ON UPDATE |
+|---------|-------------|-----------|-----------|
+| adresa | → kupac | `CASCADE` | `CASCADE` |
+| proizvod | → kategorija | `RESTRICT` | `CASCADE` |
+| narudzba | → kupac | `RESTRICT` | `CASCADE` |
+| stavka_narudzbe | → narudzba | `CASCADE` | `CASCADE` |
+| stavka_narudzbe | → proizvod | `RESTRICT` | `CASCADE` |
+| placanje | → narudzba | `RESTRICT` | `CASCADE` |
+| dostava | → narudzba | `RESTRICT` | `CASCADE` |
+| nabava | → dobavljac | `RESTRICT` | `CASCADE` |
+| stavka_nabave | → nabava | `CASCADE` | `CASCADE` |
+| stavka_nabave | → proizvod | `RESTRICT` | `CASCADE` |
+| recenzija | → kupac | `RESTRICT` | `CASCADE` |
+| recenzija | → proizvod | `CASCADE` | `CASCADE` |
+
+### Ostala ograničenja
+- `UNIQUE` na email u tablicama kupac i dobavljac
+- `UNIQUE` na SKU u tablici proizvod
+- `UNIQUE` na narudzba_id u tablicama placanje i dostava (osigurava 1:1)
+- `UNIQUE` na (narudzba_id, proizvod_id) u stavka_narudzbe
+- `UNIQUE` na (nabava_id, proizvod_id) u stavka_nabave
+- `UNIQUE` na (kupac_id, proizvod_id) u recenzija
+- `CHECK` cijena > 0, kolicina > 0, ocjena između 1 i 5
+
+---
 
 
 &nbsp;

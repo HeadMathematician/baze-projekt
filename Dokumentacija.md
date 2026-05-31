@@ -285,8 +285,8 @@ Dodatno ograničenje: UNIQUE (kupac_id, proizvod_id) — jedan kupac može dati 
 ### 3.3 Pregled kardinalnosti
 
 #### Veze 1:1 (jedan naprema jedan)
-- NARUDZBA ↔ PLACANJE — osigurano s UNIQUE(narudzba_id)
-- NARUDZBA ↔ DOSTAVA — osigurano s UNIQUE(narudzba_id)
+- `NARUDZBA` ↔ `PLACANJE` — osigurano s UNIQUE(narudzba_id)
+- `NARUDZBA` ↔ `DOSTAVA` — osigurano s UNIQUE(narudzba_id)
 
 #### Veze 1:N (jedan naprema više)
 - `KUPAC` → `ADRESA`
